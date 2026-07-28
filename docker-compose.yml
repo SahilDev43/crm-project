@@ -11,10 +11,10 @@ services:
     environment:
       POSTGRES_DB: crm_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: admin@123
+      POSTGRES_PASSWORD: crm_password
 
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
