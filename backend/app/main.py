@@ -9,6 +9,7 @@ from app.core.config import settings
 from app.core.logging import configure_logging
 from app.db.health import check_database
 from app.modules.users.router import router as user_router
+from app.modules.auth.router import router as auth_router
 
 configure_logging()
 
@@ -56,3 +57,5 @@ async def health():
     }
 
 app.include_router(user_router)
+
+app.include_router(auth_router)
