@@ -1,5 +1,5 @@
-from sqlalchemy import Boolean, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins import SoftDeleteMixin, TimestampMixin
@@ -38,6 +38,16 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+
+    role_id : Mapped[int | None] = mapped_column(
+        ForeignKey("roles.id"),
+        nullable=True
+    )
+
+    role = relationship(
+        "Role",
+        back_populates="users"
     )
 
     is_active: Mapped[bool] = mapped_column(

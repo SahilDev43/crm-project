@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+import app.db.models
 from app.api import api_router
 from app.common.exceptions import AppException
 from app.core.config import settings

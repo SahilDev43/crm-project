@@ -29,7 +29,14 @@ class UserService:
          password_hash=hash_password(data.password),
         )
 
-        return await self.repo.create(user)
+        try:
+            await self.repo.create(user)
+            await self.repo.commit()
+            await self.repo.refresh(user)
+            return user
+        except:
+            await self.repo.rollback()
+            raise
 
     async def get_users(self):
         return await self.repo.get_all()
@@ -39,6 +46,6 @@ class UserService:
         user = await self.repo.get_by_id(user_id)
 
         if not user:
-            raise UserNotFoundError
+            raise UserNotFoundError()
 
         return user

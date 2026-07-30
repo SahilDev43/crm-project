@@ -31,3 +31,19 @@ class InvalidCredentialsError(AppException):
 
     status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Invalid email or password"
+
+class InvalidTokenError(AppException):
+    """ Raised when a invalid authentication token found. """
+
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail="Invalid authentication token"
+
+class UserNotAuthenticatedError(AppException):
+    status_code=status.HTTP_401_UNAUTHORIZED
+    detail="Authentication required"
+
+class PermissionDeniedError(AppException):
+    """Raised when a user doesn't have the required permission."""
+
+    status_code = status.HTTP_403_FORBIDDEN
+    detail = "You don't have permission to perform this action"
