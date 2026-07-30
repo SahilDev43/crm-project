@@ -5,10 +5,9 @@ from app.modules.users.model import User
 from sqlalchemy.orm import selectinload
 from app.modules.roles.model import Role
 from app.modules.role_permissions.model import RolePermission
+from app.db.base_repository import BaseRepository
 
-class UserRepository:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+class UserRepository(BaseRepository):
 
     async def get_by_id(self, user_id: int) -> User | None:
         result = await self.db.execute(
@@ -39,14 +38,5 @@ class UserRepository:
     async def update(self, user: User) -> User:
         return user
 
-    async def delete(self, user: User) -> User:
+    async def delete(self, user: User) -> None:
         await self.db.delete(user)
-
-    async def commit(self) -> None:
-        await self.db.commit()
-
-    async def rollback(self) -> None:
-        await self.db.rollback()
-
-    async def refresh(self, user: User) -> None:
-        await self.db.refresh(user)

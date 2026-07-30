@@ -8,11 +8,13 @@ from app.core.security import hash_password
 from app.modules.users.model import User
 from app.modules.users.repository import UserRepository
 from app.modules.users.schema import UserCreate
+from app.db.unit_of_work import UnitOfWork
 
 class UserService:
 
-    def __init__(self, repo: UserRepository):
+    def __init__(self, repo: UserRepository, uow: UnitOfWork):
         self.repo = repo
+        self.uow = uow
 
     async def create_user(self, data: UserCreate) -> User:
 
@@ -29,14 +31,13 @@ class UserService:
          password_hash=hash_password(data.password),
         )
 
-        try:
+        async with self.uow:
+
             await self.repo.create(user)
-            await self.repo.commit()
+
             await self.repo.refresh(user)
-            return user
-        except:
-            await self.repo.rollback()
-            raise
+
+        return User
 
     async def get_users(self):
         return await self.repo.get_all()
