@@ -1,22 +1,41 @@
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base_repository import BaseRepository
 from app.modules.permissions.model import Permission
-from app.modules.role_permissions.model import RolePermission
 
-class PermissionRepository:
 
-    def __init__(self, db: AsyncSession):
-        self.db= db
+class PermissionRepository(BaseRepository):
 
-    async def get_by_role_id(self, role_id: int) -> list[Permission]:
+    async def get_by_id(
+        self,
+        permission_id: int,
+    ) -> Permission | None:
+
         result = await self.db.execute(
-            select(Permission)
-            .join(
-                RolePermission,
-                Permission.id == RolePermission.permission_id
+            select(Permission).where(
+                Permission.id == permission_id
             )
-            .where(RolePermission.role_id == role_id)
+        )
+
+        return result.scalar_one_or_none()
+
+    async def get_by_name(
+        self,
+        name: str,
+    ) -> Permission | None:
+
+        result = await self.db.execute(
+            select(Permission).where(
+                Permission.name == name
+            )
+        )
+
+        return result.scalar_one_or_none()
+
+    async def get_all(self) -> list[Permission]:
+
+        result = await self.db.execute(
+            select(Permission).order_by(Permission.id)
         )
 
         return list(result.scalars().all())

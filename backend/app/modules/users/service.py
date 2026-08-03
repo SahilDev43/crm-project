@@ -1,5 +1,3 @@
-from fastapi import HTTPException, status
-
 from app.common.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
@@ -34,10 +32,11 @@ class UserService:
         async with self.uow:
 
             await self.repo.create(user)
+            await self.repo.flush()
 
-            await self.repo.refresh(user)
+        await self.repo.refresh(user)
 
-        return User
+        return user
 
     async def get_users(self):
         return await self.repo.get_all()
