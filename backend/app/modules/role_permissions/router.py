@@ -35,4 +35,26 @@ async def assign_permission(
 
     return await service.assign_permission(
         role_id=role_id,
+        permission_id=permission_id
+    )
+
+@router.delete(
+    "/{role_id}/permissions/{permission_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[
+        Depends(require_permission("permissions.assign"))
+    ],
+)
+
+async def remove_permission(
+    role_id: int,
+    permission_id: int,
+    service: RolePermissionService = Depends(
+        get_role_permission_service
+    )
+):
+
+    await service.remove_permission(
+        role_id=role_id,
+        permission_id=permission_id
     )
