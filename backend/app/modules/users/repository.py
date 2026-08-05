@@ -17,18 +17,18 @@ class UserRepository(BaseRepository):
                 .selectinload(Role.role_permissions)
                 .selectinload(RolePermission.permission)
             )
-            .where(User.id == user_id)
+            .where(User.id == user_id, User.is_deleted.is_(False))
         )
         return result.scalar_one_or_none()
 
     async def get_by_email(self, email: str) -> User | None:
         result = await self.db.execute(
-            select(User).where(User.email == email)
+            select(User).where(User.email == email, User.is_deleted.is_(False))
         )
         return result.scalar_one_or_none()
 
     async def get_all(self) -> list[User]:
-        result = await self.db.execute(select(User))
+        result = await self.db.execute(select(User).where(User.is_deleted.is_(False)).order_by(User.id))
         return list(result.scalars().all())
 
     async def create(self, user: User) -> User:
@@ -39,4 +39,7 @@ class UserRepository(BaseRepository):
         return user
 
     async def delete(self, user: User) -> None:
-        await self.db.delete(user)
+        user.is_deleted = True
+        user.is_active = False
+
+        return user
