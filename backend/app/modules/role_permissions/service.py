@@ -91,3 +91,20 @@ class RolePermissionService:
         async with self.uow:
             await self.role_permission_repo.remove(role_permission)
             await self.role_permission_repo.flush()
+
+    async def get_role_permissions(
+        self,
+        role_id: int,
+    ):
+
+        role = await self.role_repo.get_by_id(role_id)
+
+        if not role:
+            raise RoleNotFoundError()
+
+        role_permissions = await self.role_permission_repo.get_by_role(role_id)
+
+        return [
+            role_permission.permission
+            for role_permission in role_permissions
+        ]

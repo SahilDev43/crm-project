@@ -6,7 +6,7 @@ from app.core.jwt import (
 
 from app.core.security import verify_password
 
-from app.common.exceptions import InvalidCredentialsError, InvalidTokenError
+from app.common.exceptions import InvalidCredentialsError, InvalidTokenError, UserNotAuthenticatedError
 
 from app.modules.users.repository import UserRepository
 
@@ -26,6 +26,9 @@ class AuthService:
 
         if not verify_password(password, user.password_hash):
             raise InvalidCredentialsError()
+
+        if not user.is_active:
+            raise UserNotAuthenticatedError()
 
         access_token = create_access_token(
             {
@@ -59,8 +62,21 @@ class AuthService:
             if payload.get("type") != "refresh":
                 raise InvalidTokenError()
 
+            user_id = payload.get("sub")
+
+            if not user_id:
+                raise InvalidTokenError()
+
         except JWTError:
             raise InvalidTokenError()
+
+        user = await self.repo.get_by_id(int(user_id))
+
+        if not user:
+            raise InvalidTokenError()
+
+        if not user.is_active:
+            raise UserNotAuthenticatedError()
 
         return {
             "access_token": create_access_token(

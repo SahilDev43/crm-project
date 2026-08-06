@@ -3,7 +3,8 @@ from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from app.core.config import settings
 from app.common.exceptions import (
-    InvalidTokenError
+    InvalidTokenError,
+    UserNotAuthenticatedError
 )
 from app.core.oauth2 import oauth2_scheme
 from app.modules.users.dependencies import get_user_repository
@@ -83,5 +84,8 @@ async def get_current_user(
 
     if not user:
         raise InvalidTokenError()
+
+    if not user.is_active:
+        raise UserNotAuthenticatedError()
 
     return user

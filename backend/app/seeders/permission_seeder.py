@@ -53,6 +53,18 @@ class PermissionSeeder(BaseSeeder):
             "name": "permissions.assign",
             "description": "Assign permissions"
         },
+        {
+            "name": "permissions.create",
+            "description": "Create permissions"
+        },
+        {
+            "name": "permissions.update",
+            "description": "Update permissions"
+        },
+        {
+            "name": "permissions.delete",
+            "description": "Delete permissions"
+        }
     ]
 
     async def run(self,db: AsyncSession) -> None:

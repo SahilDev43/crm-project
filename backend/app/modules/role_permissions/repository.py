@@ -1,5 +1,5 @@
 from sqlalchemy import select
-
+from sqlalchemy.orm import selectinload
 from app.db.base_repository import BaseRepository
 from app.modules.role_permissions.model import RolePermission
 
@@ -26,9 +26,11 @@ class RolePermissionRepository(BaseRepository):
     ) -> list[RolePermission]:
 
         result = await self.db.execute(
-            select(RolePermission).where(
-                RolePermission.role_id == role_id
+            select(RolePermission).options(
+                selectinload(RolePermission.permission)
             )
+            .where(RolePermission.role_id == role_id)
+            .order_by(RolePermission.permission_id)
         )
 
         return list(result.scalars().all())

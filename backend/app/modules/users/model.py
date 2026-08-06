@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.db.mixins import SoftDeleteMixin, TimestampMixin
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+if TYPE_CHECKING:
+    from app.modules.companies.model import Company
 
 class User(Base, TimestampMixin, SoftDeleteMixin):
 
@@ -45,9 +50,23 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
         nullable=True
     )
 
+    company_id: Mapped[int | None] = mapped_column(
+        ForeignKey(
+            "companies.id",
+            ondelete="RESTRICT"
+        ),
+        nullable=True,
+        index=True
+    )
+
     role = relationship(
         "Role",
         back_populates="users"
+    )
+
+    company: Mapped["Company | None"] = relationship(
+        "Company",
+        back_populates="users",
     )
 
     is_active: Mapped[bool] = mapped_column(

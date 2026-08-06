@@ -79,3 +79,35 @@ class RolePermissionNotFoundError(AppException):
 
     status_code = status.HTTP_404_NOT_FOUND
     detail = "Permission is not assigned to this role"
+
+class PermissionAlreadyExistsError(AppException):
+    """Raised when permission is already assigned to the role."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Permission already exists"
+
+class PermissionNotFoundError(AppException):
+    """Raised when permission is Not Found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Permission not found"
+
+class CompanyNotFoundError(AppException):
+    """Raised when company is Not Found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Company not found"
+
+
+class CompanyAlreadyExistsError(AppException):
+    """Raised when compant already exists."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Company already exists"
+
+class InvalidFileTypeError(AppException):
+    """Raised when invalid file type."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid file type"
+
+
+class FileTooLargeError(AppException):
+    """Raised when file is larger than 2mb."""
+    status_code = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    detail = "File size exceeds the maximum allowed size"

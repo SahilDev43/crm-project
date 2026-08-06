@@ -32,6 +32,15 @@ class PermissionRepository(BaseRepository):
 
         return result.scalar_one_or_none()
 
+    async def create(
+        self,
+        permission: Permission
+    ) -> Permission:
+
+        self.db.add(permission)
+
+        return permission
+
     async def get_all(self) -> list[Permission]:
 
         result = await self.db.execute(
@@ -39,3 +48,10 @@ class PermissionRepository(BaseRepository):
         )
 
         return list(result.scalars().all())
+
+    async def delete(
+        self,
+        permission: Permission
+    ) -> None:
+
+        await self.db.delete(permission)
