@@ -3,6 +3,7 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 from app.db.mixins import TimestampMixin, SoftDeleteMixin
+from app.modules.leads.model import Lead, LeadStatus
 if TYPE_CHECKING:
     from app.modules.users.model import User
 
@@ -34,4 +35,15 @@ class Company(Base, TimestampMixin, SoftDeleteMixin):
     users: Mapped[list["User"]] = relationship(
         "User",
         back_populates="company",
+    )
+
+    leads: Mapped[list["Lead"]] = relationship(
+        "Lead",
+        back_populates="company",
+    )
+
+    api_keys: Mapped[list["CompanyApiKey"]] = relationship(
+        "CompanyApiKey",
+        back_populates="company",
+        cascade="all, delete-orphan"
     )

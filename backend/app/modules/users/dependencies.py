@@ -8,6 +8,9 @@ from app.modules.roles.repository import RoleRepository
 
 from app.modules.users.repository import UserRepository
 from app.modules.users.service import UserService
+from app.modules.companies.repository import CompanyRepository
+from app.modules.companies.dependencies import get_company_repository, get_storage_service
+from app.common.storage import StorageService
 
 def get_user_repository(
         db: AsyncSession = Depends(get_db),
@@ -22,10 +25,14 @@ def get_role_repository(
 def get_user_service(
     repo: UserRepository = Depends(get_user_repository),
     role_repo: RoleRepository = Depends(get_role_repository),
+    company_repo: CompanyRepository = Depends(get_company_repository),
+    storage: StorageService = Depends(get_storage_service),
     uow: UnitOfWork = Depends(get_uow),
 ) -> UserService:
     return UserService(
         repo=repo,
         role_repo=role_repo,
+        company_repo=company_repo,
+        storage=storage,
         uow=uow,
     )

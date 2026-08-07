@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, File, UploadFile
 
 from app.modules.users.dependencies import get_user_service
 from app.modules.users.schema import(
@@ -46,6 +46,36 @@ async def list_users(
 @router.get("/{user_id}", response_model=UserResponse, dependencies=[Depends(require_permission("users.view"))])
 async def get_user(user_id: int, service: UserService = Depends(get_user_service)):
     return await service.get_user(user_id)
+
+@router.post(
+    "/{user_id}/profile-image",
+    response_model=UserResponse,
+    dependencies=[
+        Depends(require_permission("users.update"))
+    ]
+)
+async def upload_profile_image(
+    user_id: int,
+    image: UploadFile = File(...),
+    service: UserService = Depends(get_user_service)
+):
+    return await service.upload_profile_image(
+        user_id=user_id,
+        image=image
+    )
+
+@router.delete(
+    "/{user_id}/profile-image",
+    response_model= UserResponse,
+    dependencies=[
+        Depends(require_permission("users.update"))
+    ]
+)
+async def remove_profile_image(
+    user_id: int,
+    service: UserService = Depends(get_user_service)
+):
+    return await service.remove_profile_image(user_id)
 
 @router.delete(
     "/{user_id}",

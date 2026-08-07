@@ -11,6 +11,7 @@ from app.db.session import AsyncSessionFactory
 from app.seeders.permission_seeder import PermissionSeeder
 from app.seeders.role_permission_seeder import RolePermissionSeeder
 from app.seeders.role_seeder import RoleSeeder
+from app.seeders.lead_status_seeder import LeadStatusSeeder
 
 async def seed_database() -> None:
     async with AsyncSessionFactory() as db:
@@ -23,6 +24,9 @@ async def seed_database() -> None:
 
         print("Assigning permission to roles...")
         await RolePermissionSeeder().run(db)
+
+        print("Seeding lead statuses...")
+        await LeadStatusSeeder().run(db)
 
         print("Database seeding completed successfully.")
 

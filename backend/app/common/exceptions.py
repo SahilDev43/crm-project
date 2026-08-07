@@ -101,6 +101,11 @@ class CompanyAlreadyExistsError(AppException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Company already exists"
 
+class CompanyInactiveError(AppException):
+    """Raised when compant is inactive."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Company already exists"
+
 class InvalidFileTypeError(AppException):
     """Raised when invalid file type."""
     status_code = status.HTTP_400_BAD_REQUEST
@@ -109,5 +114,33 @@ class InvalidFileTypeError(AppException):
 
 class FileTooLargeError(AppException):
     """Raised when file is larger than 2mb."""
-    status_code = status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    status_code = status.HTTP_413_CONTENT_TOO_LARGE
     detail = "File size exceeds the maximum allowed size"
+
+class LeadNotFoundError(AppException):
+    """Raised when Lead is not found."""
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="Lead not found",
+
+
+class LeadAlreadyExistsError(AppException):
+    """Raised when Lead already exists."""
+    status_code=status.HTTP_409_CONFLICT,
+    detail="Lead already exists",
+
+
+class LeadStatusNotFoundError(AppException):
+    """Raised when Lead status is not found."""
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="Lead status not found",
+
+
+class DefaultLeadStatusNotFoundError(AppException):
+    """Raised when Lead status is not configured."""
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    detail="Default lead status not configured",
+
+class CompanyApiKeyNotFoundError(AppException):
+    """Raised when Lead status is not configured."""
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="Company API key not found",

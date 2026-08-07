@@ -9,6 +9,8 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=128)
+    company_id: int
+    role_id: int | None = None
 
 class UserUpdate(BaseModel):
     first_name: str | None = Field(default=None, min_length=2, max_length=100)
@@ -16,10 +18,15 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     phone: str | None = Field(default=None, max_length=20)
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    role_id: int | None = None
+    company_id: int | None = None
     is_active: bool | None = None
 
 class UserResponse(UserBase):
     id: int
+    role_id: int | None
+    company_id: int | None
+    profile_image: str | None
     is_active: bool
     created_at: datetime
     updated_at: datetime

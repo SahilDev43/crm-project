@@ -9,6 +9,7 @@ from app.modules.permissions.router import (
     router as permissions_router,
 )
 from app.modules.companies.router import router as companies_router
+from app.modules.leads.router import router as leads_router
 
 api_router = APIRouter()
 
@@ -18,3 +19,4 @@ api_router.include_router(role_permission_router)
 api_router.include_router(auth_router)
 api_router.include_router(permissions_router)
 api_router.include_router(companies_router)
+api_router.include_router(leads_router)
