@@ -144,3 +144,8 @@ class CompanyApiKeyNotFoundError(AppException):
     """Raised when Lead status is not configured."""
     status_code=status.HTTP_404_NOT_FOUND,
     detail="Company API key not found",
+
+class InvalidApiKeyError(AppException):
+    """Raised when API Key shows Invalid"""
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Invalid API Key",

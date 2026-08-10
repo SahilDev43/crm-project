@@ -2,6 +2,7 @@ from app.db.unit_of_work import UnitOfWork
 from app.modules.companies.repository import CompanyRepository
 from app.modules.leads.model import Lead
 from app.modules.leads.repository import LeadRepository
+from app.modules.leads.public_schema import PublicLeadCreate
 from app.modules.leads.schema import LeadCreate, LeadUpdate
 from app.common.exceptions import (
     CompanyNotFoundError,
@@ -140,3 +141,45 @@ class LeadService:
 
     async def get_statuses(self):
         return await self.repo.get_all_statuses()
+
+    async def create_public_lead(
+        self,
+        company_id: int,
+        data: PublicLeadCreate
+    ) -> Lead:
+
+        company = await self.company_repo.get_by_id(company_id)
+
+        if not company:
+            raise CompanyNotFoundError()
+
+        if not company.is_active:
+            raise CompanyInactiveError()
+
+        if data.external_lead_id:
+            existing = await self.repo.get_by_external_id(
+                company_id=company_id,
+                external_lead_id=data.external_lead_id
+            )
+
+            if existing:
+                raise DefaultLeadStatusNotFoundError()
+
+        status = await self.repo.get_status_by_code("new")
+
+        if not status:
+            raise DefaultLeadStatusNotFoundError()
+
+        lead = Lead(
+            **data.model_dump(),
+            company_id=company_id,
+            status_id=status.id
+        )
+
+        async with self.uow:
+            await self.repo.create(lead)
+            await self.repo.flush()
+
+        lead = await self.repo.get_by_id(lead.id)
+
+        return lead
