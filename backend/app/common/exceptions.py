@@ -119,33 +119,33 @@ class FileTooLargeError(AppException):
 
 class LeadNotFoundError(AppException):
     """Raised when Lead is not found."""
-    status_code=status.HTTP_404_NOT_FOUND,
-    detail="Lead not found",
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Lead not found"
 
 
 class LeadAlreadyExistsError(AppException):
     """Raised when Lead already exists."""
-    status_code=status.HTTP_409_CONFLICT,
-    detail="Lead already exists",
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Lead already exists"
 
 
 class LeadStatusNotFoundError(AppException):
     """Raised when Lead status is not found."""
-    status_code=status.HTTP_404_NOT_FOUND,
-    detail="Lead status not found",
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Lead status not found"
 
 
 class DefaultLeadStatusNotFoundError(AppException):
     """Raised when Lead status is not configured."""
-    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    detail="Default lead status not configured",
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    detail = "Default lead status not configured"
 
 class CompanyApiKeyNotFoundError(AppException):
     """Raised when Lead status is not configured."""
-    status_code=status.HTTP_404_NOT_FOUND,
-    detail="Company API key not found",
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Company API key not found"
 
 class InvalidApiKeyError(AppException):
     """Raised when API Key shows Invalid"""
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail="Invalid API Key",
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Invalid API Key"
