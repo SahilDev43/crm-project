@@ -4,5 +4,9 @@ from app.modules.permissions.model import Permission
 from app.modules.role_permissions.model import RolePermission
 from app.modules.companies.model import Company
 from app.modules.companies.api_key_model import CompanyApiKey
+from app.modules.project_types.model import ProjectType
+from app.modules.deal_platforms.model import DealPlatform
+from app.modules.deal_statuses.model import DealStatus
+from app.modules.deals.model import Deal
 
-__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey"]
+__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal"]

@@ -149,3 +149,27 @@ class InvalidApiKeyError(AppException):
     """Raised when API Key shows Invalid"""
     status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Invalid API Key"
+
+
+class DealNotFoundError(AppException):
+    """Raised when deal is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Deal not found"
+
+
+class ProjectTypeNotFoundError(AppException):
+    """Raised when project type is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Project type not found"
+
+
+class DealPlatformNotFoundError(AppException):
+    """Raised when deal platform is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Deal platform not found"
+
+
+class DealStatusNotFoundError(AppException):
+    """Raised when deal status is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Deal status not found"
