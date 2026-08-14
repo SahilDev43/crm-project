@@ -8,5 +8,7 @@ from app.modules.project_types.model import ProjectType
 from app.modules.deal_platforms.model import DealPlatform
 from app.modules.deal_statuses.model import DealStatus
 from app.modules.deals.model import Deal
+from app.modules.teams.model import Team
+from app.modules.teams.member_model import TeamMember
 
-__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal"]
+__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "Team", "TeamMember"]

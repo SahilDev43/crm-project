@@ -58,7 +58,7 @@ class UserService:
          phone=data.phone,
          password_hash=hash_password(data.password),
          role_id=data.role_id,
-         comapany_id=data.company_id
+         company_id=data.company_id
         )
 
         async with self.uow:

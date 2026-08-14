@@ -14,6 +14,7 @@ from app.modules.leads.public_router import (
     router as public_leads_router,
 )
 from app.modules.deals.router import router as deals_router
+from app.modules.teams.router import router as teams_router
 
 api_router = APIRouter()
 
@@ -26,3 +27,4 @@ api_router.include_router(companies_router)
 api_router.include_router(leads_router)
 api_router.include_router(public_leads_router)
 api_router.include_router(deals_router)
+api_router.include_router(teams_router)

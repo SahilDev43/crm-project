@@ -87,3 +87,16 @@ class DealResponse(DealBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class DealListResponse(BaseModel):
+    items: list[DealResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+class DealAssign(BaseModel):
+    assigned_to : int
+
+class DealStatusUpdate(BaseModel):
+    deal_status_id: int

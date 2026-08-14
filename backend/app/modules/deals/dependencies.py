@@ -17,6 +17,7 @@ from app.modules.leads.dependencies import get_lead_repository
 from app.modules.project_types.repository import ProjectTypeRepository
 from app.modules.deal_platforms.repository import DealPlatformRepository
 from app.modules.deal_statuses.repository import DealStatusRepository
+from app.modules.users.repository import UserRepository
 
 
 def get_deal_repository(
@@ -42,6 +43,10 @@ def get_deal_status_repository(
 ) -> DealStatusRepository:
     return DealStatusRepository(db)
 
+def get_user_repository(
+    db: AsyncSession = Depends(get_db)
+) -> UserRepository:
+    return UserRepository(db)
 
 def get_deal_service(
     repo: DealRepository = Depends(get_deal_repository),
@@ -56,6 +61,9 @@ def get_deal_service(
     deal_status_repo: DealStatusRepository = Depends(
         get_deal_status_repository
     ),
+    user_repo: UserRepository = Depends(
+        get_user_repository
+    ),
     uow: UnitOfWork = Depends(get_uow),
 ) -> DealService:
 
@@ -67,4 +75,5 @@ def get_deal_service(
         project_type_repo=project_type_repo,
         platform_repo=platform_repo,
         deal_status_repo=deal_status_repo,
+        user_repo=user_repo
     )

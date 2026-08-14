@@ -5,6 +5,7 @@ from app.common.exceptions import (
     ProjectTypeNotFoundError,
     DealPlatformNotFoundError,
     DealStatusNotFoundError,
+    UserNotFoundError,
 )
 
 from app.modules.deals.model import Deal
@@ -16,9 +17,10 @@ from app.modules.leads.repository import LeadRepository
 from app.modules.project_types.repository import ProjectTypeRepository
 from app.modules.deal_platforms.repository import DealPlatformRepository
 from app.modules.deal_statuses.repository import DealStatusRepository
+from app.modules.users.repository import UserRepository
 
 from app.db.unit_of_work import UnitOfWork
-
+import math
 
 class DealService:
 
@@ -31,6 +33,7 @@ class DealService:
         project_type_repo: ProjectTypeRepository,
         platform_repo: DealPlatformRepository,
         deal_status_repo: DealStatusRepository,
+        user_repo: UserRepository
     ):
         self.repo = repo
         self.uow = uow
@@ -39,6 +42,7 @@ class DealService:
         self.project_type_repo = project_type_repo
         self.platform_repo = platform_repo
         self.deal_status_repo = deal_status_repo
+        self.user_repo = user_repo
 
     async def create_deal(
         self,
@@ -134,11 +138,35 @@ class DealService:
     async def get_deals(
         self,
         company_id: int | None = None,
+        deal_status_id: int | None = None,
+        platform_id: int | None = None,
+        project_type_id: int | None = None,
+        assigned_to: int | None = None,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 10,
     ):
 
-        return await self.repo.get_all(
-            company_id=company_id
+        deals, total = await self.repo.get_all(
+            company_id=company_id,
+            deal_status_id=deal_status_id,
+            platform_id=platform_id,
+            project_type_id=project_type_id,
+            assigned_to=assigned_to,
+            search=search,
+            page=page,
+            page_size=page_size
         )
+
+        total_pages = math.ceil(total / page_size) if total else 0
+
+        return {
+            "items": deals,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
 
     async def get_deal(
         self,
@@ -239,6 +267,65 @@ class DealService:
 
         async with self.uow:
 
+            await self.repo.flush()
+
+        await self.repo.refresh(deal)
+
+        return deal
+
+    async def assign_deal(
+        self,
+        deal_id: int,
+        assigned_to: int,
+        current_user_id: int
+    ) -> Deal:
+
+        deal = await self.repo.get_by_id(deal_id)
+
+        if not deal:
+            raise DealNotFoundError()
+
+        user = await self.user_repo.get_by_id(assigned_to)
+
+        if not user:
+            raise UserNotFoundError()
+
+        if not user.is_active:
+            raise UserNotFoundError()
+
+        deal.assigned_to = assigned_to
+        deal.updated_by = current_user_id
+
+        async with self.uow:
+            await self.repo.flush()
+
+        await self.repo.refresh(deal)
+
+        return deal
+
+    async def update_deal_status(
+        self,
+        deal_id: int,
+        deal_status_id: int,
+        current_user_id: int
+    ) -> Deal:
+
+        deal = await self.repo.get_by_id(deal_id)
+
+        if not deal:
+            raise DealNotFoundError()
+
+        deal_status = await self.deal_status_repo.get_by_id(
+            deal_status_id
+        )
+
+        if not deal_status:
+            raise DealStatusNotFoundError()
+
+        deal.deal_status_id = deal_status_id
+        deal.updated_by = current_user_id
+
+        async with self.uow:
             await self.repo.flush()
 
         await self.repo.refresh(deal)
