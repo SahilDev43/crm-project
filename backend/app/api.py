@@ -15,6 +15,14 @@ from app.modules.leads.public_router import (
 )
 from app.modules.deals.router import router as deals_router
 from app.modules.teams.router import router as teams_router
+from app.modules.attendance.router import router as attendance_router
+from app.modules.salary_components.router import router as salary_component_router
+from app.modules.salary_structures.router import (
+    router as salary_structure_router,
+)
+from app.modules.employee_salaries.router import (
+    router as employee_salary_router,
+)
 
 api_router = APIRouter()
 
@@ -28,3 +36,7 @@ api_router.include_router(leads_router)
 api_router.include_router(public_leads_router)
 api_router.include_router(deals_router)
 api_router.include_router(teams_router)
+api_router.include_router(attendance_router)
+api_router.include_router(salary_component_router)
+api_router.include_router(salary_structure_router)
+api_router.include_router(employee_salary_router)

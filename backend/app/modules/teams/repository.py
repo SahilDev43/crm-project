@@ -17,7 +17,7 @@ class TeamRepository(BaseRepository):
             )
         )
 
-        return result.scalar_one_or_none
+        return result.scalar_one_or_none()
 
     async def get_all(
         self,

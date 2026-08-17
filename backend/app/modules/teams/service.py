@@ -1,5 +1,7 @@
 from app.common.exceptions import (
     CompanyNotFoundError,
+    TeamNotFoundError,
+    UserNotFoundError,
 )
 
 from app.modules.teams.model import Team
@@ -77,9 +79,14 @@ class TeamService:
         team_id: int,
     ) -> Team:
 
-        return await self.repo.get_by_id(
+        team = await self.repo.get_by_id(
             team_id
         )
+
+        if not team:
+            raise TeamNotFoundError()
+
+        return team
 
     async def update_team(
         self,
@@ -92,7 +99,7 @@ class TeamService:
         )
 
         if not team:
-            return None
+            raise TeamNotFoundError()
 
         update_data = data.model_dump(
             exclude_unset=True
@@ -137,14 +144,14 @@ class TeamService:
         )
 
         if not team:
-            return None
+            raise TeamNotFoundError()
 
         user = await self.user_repo.get_by_id(
             data.user_id
         )
 
         if not user:
-            return None
+            raise UserNotFoundError()
 
         existing = await self.repo.get_member(
             team_id=team_id,

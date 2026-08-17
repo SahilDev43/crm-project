@@ -173,3 +173,135 @@ class DealStatusNotFoundError(AppException):
     """Raised when deal status is not found."""
     status_code = status.HTTP_404_NOT_FOUND
     detail = "Deal status not found"
+
+
+class TeamNotFoundError(AppException):
+    """Raised when team is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Team not found"
+
+
+class AttendanceNotFoundError(AppException):
+    """Raised when attendance record is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Attendance not found"
+
+
+class AttendanceSessionActiveError(AppException):
+    """Raised when punching in while a session is already active."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "You already have an active attendance session"
+
+
+class AttendanceSessionNotActiveError(AppException):
+    """Raised when punching out with no active session."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "No active attendance session found"
+
+
+class SalaryStructureNotFoundError(AppException):
+    """Raised when salary structure is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Salary structure not found"
+
+
+class SalaryStructureCodeExistsError(AppException):
+    """Raised when salary structure code already exists."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Salary structure code already exists"
+
+
+class SalaryComponentCodeExistsError(AppException):
+    """Raised when salary component code already exists."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Salary component code already exists"
+
+
+class SalaryStructureComponentExistsError(AppException):
+    """Raised when salary component is already assigned to the structure."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Salary component already exists in this structure"
+
+
+class SalaryComponentNotFoundError(AppException):
+    """Raised when salary component is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Salary component not found"
+
+
+class InvalidCalculationTypeError(AppException):
+    """Raised when calculation type is invalid."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid calculation type"
+
+
+class FixedComponentCalculationBaseError(AppException):
+    """Raised when a fixed component has a calculation base."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Fixed components cannot have a calculation base"
+
+
+class PercentageComponentCalculationBaseRequiredError(AppException):
+    """Raised when a percentage component is missing a calculation base."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Percentage components require a calculation base"
+
+
+class ComponentBaseRequiredError(AppException):
+    """Raised when component-based calculation is missing a base component."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Component-based calculation requires a base component"
+
+
+class ComponentBaseNotAllowedError(AppException):
+    """Raised when a base component is set for a non component-based calculation."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Base component is only allowed for component-based calculations"
+
+
+class NegativeComponentValueError(AppException):
+    """Raised when a component value is negative."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Component value cannot be negative"
+
+
+class SalaryStructureComponentNotFoundError(AppException):
+    """Raised when salary structure component is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Salary structure component not found"
+
+
+class EmployeeNotFoundError(AppException):
+    """Raised when employee is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Employee not found"
+
+
+class EmployeeInactiveError(AppException):
+    """Raised when employee is inactive."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Employee is inactive"
+
+
+class SalaryStructureInactiveError(AppException):
+    """Raised when salary structure is inactive."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Salary structure is inactive"
+
+
+class InvalidEffectiveDateRangeError(AppException):
+    """Raised when effective_to is before effective_from."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "effective_to cannot be before effective_from"
+
+
+class SalaryPeriodOverlapError(AppException):
+    """Raised when a salary period overlaps an existing record."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Salary period overlaps with an existing salary record"
+
+
+class EmployeeSalaryNotFoundError(AppException):
+    """Raised when employee salary record is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Employee salary not found"
