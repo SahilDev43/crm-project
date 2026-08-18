@@ -25,6 +25,11 @@ from app.common.exceptions import (
     PayrollNotFoundError,
     PayrollAlreadyPaidError,
 )
+
+from app.modules.payroll.schema import (
+    PayrollUpdateRequest
+)
+
 from app.modules.payroll.model import Payroll
 from app.modules.payroll.item_model import PayrollItem
 from app.modules.payroll.repository import PayrollRepository
@@ -589,6 +594,28 @@ class PayrollService:
 
         payroll.status = PayrollStatus.PAID
         payroll.paid_at = date.today()
+
+        await self.repository.db.commit()
+        await self.repository.db.refresh(payroll)
+
+        return payroll
+
+    async def update(
+        self,
+        payroll_id: int,
+        data: PayrollUpdateRequest,
+        company_id: int,
+    ) -> Payroll:
+
+        payroll = await self.repository.get_by_id(
+            payroll_id=payroll_id,
+            company_id=company_id,
+        )
+
+        if not payroll:
+            raise PayrollNotFoundError()
+
+        payroll.remarks = data.remarks
 
         await self.repository.db.commit()
         await self.repository.db.refresh(payroll)

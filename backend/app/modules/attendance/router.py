@@ -80,8 +80,9 @@ async def get_my_attendance(
     ),
     current_user=Depends(get_current_user),
 ):
-    return await service.get_attendance(
+    return await service.get_user_attendance(
         user_id=current_user.id,
+        company_id=current_user.company_id,
     )
 
 
@@ -101,6 +102,9 @@ async def get_attendance(
         default=None,
     ),
     date_to: date | None = Query(
+        default=None,
+    ),
+    status: int | None = Query(
         default=None,
     ),
     search: str | None = Query(
@@ -126,6 +130,7 @@ async def get_attendance(
         user_id=user_id,
         date_from=date_from,
         date_to=date_to,
+        status=status,
         search=search,
         page=page,
         page_size=page_size,

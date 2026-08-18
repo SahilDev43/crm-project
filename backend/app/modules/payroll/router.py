@@ -11,7 +11,8 @@ from app.modules.payroll.schema import (
     PayrollResponse,
     PayrollListResponse,
     PayrollDetailResponse,
-    PayrollItemResponse
+    PayrollItemResponse,
+    PayrollUpdateRequest
 )
 from app.modules.payroll.service import PayrollService
 
@@ -142,4 +143,24 @@ async def mark_payroll_as_paid(
     return await service.mark_as_paid(
         payroll_id=payroll_id,
         company_id=current_user.company_id
+    )
+
+@router.patch(
+    "/{payroll_id}",
+    response_model=PayrollResponse,
+)
+async def update_payroll(
+    payroll_id: int,
+    data: PayrollUpdateRequest,
+    repository: PayrollRepository = Depends(
+        get_payroll_repository
+    ),
+    current_user=Depends(get_current_user),
+):
+    service = PayrollService(repository)
+
+    return await service.update(
+        payroll_id=payroll_id,
+        data=data,
+        company_id=current_user.company_id,
     )

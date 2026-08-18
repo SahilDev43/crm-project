@@ -48,6 +48,9 @@ class AttendanceRepository(BaseRepository):
 
         result = await self.db.execute(
             select(Attendance)
+            .options(
+                joinedload(Attendance.user)
+            )
             .where(
                 Attendance.user_id == user_id,
                 Attendance.company_id == company_id,
@@ -59,7 +62,43 @@ class AttendanceRepository(BaseRepository):
             )
         )
 
-        return list(result.scalars().all())
+        items = list(result.scalars().all())
+
+        attendance_ids = [
+            attendance.id
+            for attendance in items
+        ]
+
+        session_counts: dict[int, int] = {}
+
+        if attendance_ids:
+            count_result = await self.db.execute(
+                select(
+                    AttendanceSession.attendance_id,
+                    func.count(AttendanceSession.id),
+                )
+                .where(
+                    AttendanceSession.attendance_id.in_(
+                        attendance_ids
+                    ),
+                    AttendanceSession.is_deleted.is_(False),
+                )
+                .group_by(
+                    AttendanceSession.attendance_id
+                )
+            )
+
+            session_counts = dict(
+                count_result.all()
+            )
+
+        for attendance in items:
+            attendance.session_count = session_counts.get(
+                attendance.id,
+                0,
+            )
+
+        return items
 
     async def get_all(
         self,
@@ -67,6 +106,7 @@ class AttendanceRepository(BaseRepository):
         user_id: int | None = None,
         date_from: date | None = None,
         date_to: date | None = None,
+        status: int | None = None,
         search: str | None = None,
         page: int = 1,
         page_size: int = 20,
@@ -101,6 +141,11 @@ class AttendanceRepository(BaseRepository):
         if date_to is not None:
             query = query.where(
                 Attendance.attendance_date <= date_to
+            )
+
+        if status is not None:
+            query = query.where(
+                Attendance.status == status
             )
 
         if search:
@@ -225,7 +270,7 @@ class AttendanceRepository(BaseRepository):
         attendance_id: int,
         company_id: int | None = None,
     ):
-        attendance = await self.repo.get_by_id(
+        attendance = await self.get_by_id(
             attendance_id
         )
 
@@ -238,9 +283,16 @@ class AttendanceRepository(BaseRepository):
         ):
             raise AttendanceNotFoundError()
 
-        return await self.repo.get_sessions(
-            attendance_id
+        result = await self.db.execute(
+            select(AttendanceSession)
+            .where(
+                AttendanceSession.attendance_id == attendance_id,
+                AttendanceSession.is_deleted.is_(False),
+            )
+            .order_by(AttendanceSession.id)
         )
+
+        return list(result.scalars().all())
 
     async def create_session(
         self,
