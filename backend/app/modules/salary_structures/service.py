@@ -3,6 +3,11 @@ import math
 
 from sqlalchemy import select
 
+from app.common.constants.payroll import (
+    CalculationType,
+    CalculationBase,
+)
+
 from app.common.exceptions import (
     SalaryStructureNotFoundError,
     SalaryStructureCodeExistsError,
@@ -232,30 +237,33 @@ class SalaryStructureService:
         if not salary_component:
             raise SalaryComponentNotFoundError()
 
-        if data.calculation_type not in (1, 2):
+        if data.calculation_type not in (
+            CalculationType.FIXED,
+            CalculationType.PERCENTAGE
+        ):
             raise InvalidCalculationTypeError()
 
         if (
-            data.calculation_type == 1
+            data.calculation_type == CalculationType.FIXED
             and data.calculation_base is not None
         ):
             raise FixedComponentCalculationBaseError()
 
         if (
-            data.calculation_type == 2
+            data.calculation_type == CalculationType.PERCENTAGE
             and data.calculation_base is None
         ):
             raise PercentageComponentCalculationBaseRequiredError()
 
         if (
-            data.calculation_base == 3
+            data.calculation_base == CalculationBase.COMPONENT
             and data.calculation_base_component_id
             is None
         ):
             raise ComponentBaseRequiredError()
 
         if (
-            data.calculation_base != 3
+            data.calculation_base != CalculationBase.COMPONENT
             and data.calculation_base_component_id
             is not None
         ):

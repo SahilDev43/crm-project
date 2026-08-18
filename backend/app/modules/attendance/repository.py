@@ -5,6 +5,7 @@ import sqlalchemy as sa
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from app.common.exceptions import AttendanceNotFoundError
 from app.db.base_repository import BaseRepository
 from app.modules.users.model import User
 from app.modules.attendance.model import Attendance
@@ -229,17 +230,13 @@ class AttendanceRepository(BaseRepository):
         )
 
         if not attendance:
-            raise ValueError(
-                "Attendance not found"
-            )
+            raise AttendanceNotFoundError()
 
         if (
             company_id is not None
             and attendance.company_id != company_id
         ):
-            raise ValueError(
-                "Attendance not found"
-            )
+            raise AttendanceNotFoundError()
 
         return await self.repo.get_sessions(
             attendance_id

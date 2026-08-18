@@ -286,18 +286,14 @@ class AttendanceService:
         )
 
         if not attendance:
-            raise ValueError(
-                "Attendance not found"
-            )
+            raise AttendanceNotFoundError()
 
         # Company isolation
         if (
             company_id is not None
             and attendance.company_id != company_id
         ):
-            raise ValueError(
-                "Attendance not found"
-            )
+            raise AttendanceNotFoundError()
 
         if status is not None:
             attendance.status = status

@@ -305,3 +305,54 @@ class EmployeeSalaryNotFoundError(AppException):
     """Raised when employee salary record is not found."""
     status_code = status.HTTP_404_NOT_FOUND
     detail = "Employee salary not found"
+
+class PayrollAlreadyExistsError(AppException):
+    """Raised when Payroll already exists"""
+    status_code = status.HTTP_409_CONFLICT
+    detail ="Payroll Already exists"
+
+
+class InvalidCalculationBaseError(AppException):
+    """Raised when calculation base is invalid."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid calculation base"
+
+
+class BaseComponentNotCalculatedError(AppException):
+    """Raised when a base component has not been calculated yet."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Base component has not been calculated yet"
+
+
+class InvalidComponentTypeError(AppException):
+    """Raised when a salary component type is invalid."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid component type"
+
+
+class CircularSalaryComponentDependencyError(AppException):
+    """Raised when salary components reference each other in a cycle."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Circular salary component dependency detected"
+
+
+class GrossBasedCalculationNotSupportedError(AppException):
+    """Raised when a gross-based component is calculated before gross salary is known."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Gross-based calculation is not supported during component calculation"
+
+
+class SalaryStructureNoActiveComponentsError(AppException):
+    """Raised when a salary structure has no active components to calculate."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Salary structure has no active components"
+
+class PayrollNotFoundError(AppException):
+    """Raised when a Payroll not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Payroll not found"
+
+class PayrollAlreadyPaidError(AppException):
+    """Raised when marking a payroll as paid that is already paid."""
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Payroll is already paid"

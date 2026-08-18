@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import RoleNotFoundError
 from app.modules.permissions.model import Permission
 from app.modules.role_permissions.model import RolePermission
 from app.modules.roles.model import Role
@@ -18,7 +19,7 @@ class RolePermissionSeeder(BaseSeeder):
         admin_role = result.scalar_one_or_none()
 
         if not admin_role:
-            raise ValueError("Admin role not found")
+            raise RoleNotFoundError()
 
         result = await db.execute(
             select(Permission)

@@ -16,5 +16,7 @@ from app.modules.salary_components.model import SalaryComponent
 from app.modules.salary_structures.component_model import SalaryStructureComponent
 from app.modules.salary_structures.model import SalaryStructure
 from app.modules.employee_salaries.model import EmployeeSalary
+from app.modules.payroll.model import Payroll
+from app.modules.payroll.item_model import PayrollItem
 
-__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "Team", "TeamMember", "Attendance", "AttendanceSession", "SalaryComponent", "SalaryStructureComponent", "SalaryStructure", "EmployeeSalary"]
+__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "Team", "TeamMember", "Attendance", "AttendanceSession", "SalaryComponent", "SalaryStructureComponent", "SalaryStructure", "EmployeeSalary", "Payroll", "PayrollItem"]
