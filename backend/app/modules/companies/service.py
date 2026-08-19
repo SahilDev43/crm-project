@@ -33,6 +33,10 @@ class CompanyService:
 
         company = Company(
             name=data.name,
+            company_address=data.company_address,
+            gst_number=data.gst_number,
+            state=data.state,
+            state_code=data.state_code,
         )
 
         async with self.uow:
@@ -70,6 +74,9 @@ class CompanyService:
             raise CompanyNotFoundError()
 
         update_data = data.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+            setattr(company, field, value)
 
         if "name" in update_data:
             existing = await self.repo.get_by_name(update_data["name"])

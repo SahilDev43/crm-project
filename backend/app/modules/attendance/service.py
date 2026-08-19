@@ -244,9 +244,12 @@ class AttendanceService:
         if not attendance:
             raise AttendanceNotFoundError()
 
-        attendance.sessions = await self.repo.get_sessions(
+        sessions = await self.repo.get_sessions(
             attendance_id
         )
+
+        attendance.sessions = sessions
+        attendance.session_count = len(sessions)
 
         return attendance
 
@@ -254,16 +257,11 @@ class AttendanceService:
     async def get_sessions(
         self,
         attendance_id: int,
+        company_id: int,
     ):
-        attendance = await self.repo.get_by_id(
-            attendance_id
-        )
-
-        if not attendance:
-            raise AttendanceNotFoundError()
-
         return await self.repo.get_sessions(
-            attendance_id
+            attendance_id,
+            company_id=company_id,
         )
 
     async def get_user_attendance(
@@ -308,5 +306,11 @@ class AttendanceService:
             await self.repo.flush()
 
         await self.repo.db.refresh(attendance)
+
+        sessions = await self.repo.get_sessions(
+            attendance.id
+        )
+
+        attendance.session_count = len(sessions)
 
         return attendance

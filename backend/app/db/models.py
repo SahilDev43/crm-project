@@ -18,5 +18,8 @@ from app.modules.salary_structures.model import SalaryStructure
 from app.modules.employee_salaries.model import EmployeeSalary
 from app.modules.payroll.model import Payroll
 from app.modules.payroll.item_model import PayrollItem
+from app.modules.invoices.model import Invoice
+from app.modules.invoices.item_model import InvoiceItem
+from app.modules.invoices.payment_model import InvoicePayment
 
-__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "Team", "TeamMember", "Attendance", "AttendanceSession", "SalaryComponent", "SalaryStructureComponent", "SalaryStructure", "EmployeeSalary", "Payroll", "PayrollItem"]
+__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "Team", "TeamMember", "Attendance", "AttendanceSession", "SalaryComponent", "SalaryStructureComponent", "SalaryStructure", "EmployeeSalary", "Payroll", "PayrollItem", "Invoice", "InvoiceItem", "InvoicePayment"]

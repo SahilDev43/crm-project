@@ -1,5 +1,5 @@
 from typing import TYPE_CHECKING
-from sqlalchemy import String
+from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 from app.db.mixins import TimestampMixin, SoftDeleteMixin
@@ -24,6 +24,26 @@ class Company(Base, TimestampMixin, SoftDeleteMixin):
     logo: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True
+    )
+
+    company_address: Mapped[str | None] = mapped_column(
+    Text,
+    nullable=True,
+    )
+
+    gst_number: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    state: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    state_code: Mapped[str | None] = mapped_column(
+        String(10),
+        nullable=True,
     )
 
     is_active: Mapped[bool] = mapped_column(
