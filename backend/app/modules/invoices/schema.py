@@ -162,6 +162,12 @@ class InvoiceResponse(BaseModel):
     invoice_date: date
     due_date: date | None
 
+    company_name: str
+    company_address: str | None
+    company_state: str | None
+    company_state_code: str | None
+    company_gstin: str | None
+
     customer_name: str
     customer_company: str | None
     customer_email: str | None
@@ -237,3 +243,9 @@ class InvoicePaymentResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True
     )
+
+class InvoicePaymentSummary(BaseModel):
+    invoice_id: int
+    grand_total: Decimal
+    total_paid: Decimal
+    remaining_amount: Decimal

@@ -55,6 +55,32 @@ class Invoice(Base, TimestampMixin, SoftDeleteMixin):
         nullable=True,
     )
 
+    # Company billing snapshot
+    company_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    company_address: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    company_state: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+    )
+
+    company_state_code: Mapped[str | None] = mapped_column(
+        String(10),
+        nullable=True,
+    )
+
+    company_gstin: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
     # Customer billing snapshot
     customer_name: Mapped[str] = mapped_column(
         String(255),

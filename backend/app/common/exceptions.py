@@ -356,3 +356,26 @@ class PayrollAlreadyPaidError(AppException):
     """Raised when marking a payroll as paid that is already paid."""
     status_code = status.HTTP_409_CONFLICT
     detail = "Payroll is already paid"
+
+class CompanyBillingDetailsRequiredError(AppException):
+    """Raised when company billing/state details are missing for an invoice."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail  = "Company billing/state details are required for invoice generationn"
+
+class InvoiceNotFoundError(AppException):
+    """Raised when an invoice is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    detail = "Invoice not found"
+
+class PaymentExceedsInvoiceBalanceError(AppException):
+    """Raised when a payment amount exceeds the invoice's remaining balance."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Payment amount exceeds the invoice's remaining balance"
+
+class InvalidInvoiceStatusTransitionError(AppException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid invoice status transition"
+
+class InvoiceCannotBeCancelledError(AppException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Paid or cancelled invoices cannot be cancelled"
