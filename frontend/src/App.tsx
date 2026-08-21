@@ -10,7 +10,6 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Companies from './pages/Companies/Companies'
-import CompanyForm from './pages/Companies/CompanyForm'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -74,8 +73,6 @@ function App() {
               path="/companies"
               element={<Companies />}
             />
-
-            <Route path='/companies/new' element={<CompanyForm />} />
 
             <Route
               path="/leads"

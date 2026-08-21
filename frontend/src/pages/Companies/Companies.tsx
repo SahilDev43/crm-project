@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
   Plus,
   Pencil,
@@ -13,12 +12,18 @@ import {
 } from '../../api/companies'
 
 import type { Company } from '../../types/company'
+import CompanyForm from './CompanyForm'
+import CompanyView from './CompanyView'
 
 function Companies() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
+  const [showForm, setShowForm] = useState(false)
+  const [companyToEdit, setCompanyToEdit] = useState<Company | null>(null)
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null)
+  const [companyToView, setCompanyToView] = useState<number | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadCompanies = async () => {
     try {
@@ -41,25 +46,29 @@ function Companies() {
     loadCompanies()
   }, [])
 
-  const handleDelete = async (
-    companyId: number
-  ) => {
-    const confirmed = window.confirm(
-      'Are you sure you want to delete this company?'
-    )
+  const handleDelete = async () => {
 
-    if (!confirmed) {
+    if (!companyToDelete) {
       return
     }
 
     try {
-      await deleteCompany(companyId)
+      setDeleting(true)
+      setError('')
+
+      await deleteCompany(companyToDelete.id)
+
+      setCompanyToDelete(null)
 
       await loadCompanies()
-    } catch {
-      setError(
-        'Unable to delete company.'
-      )
+    } catch (error: any) {
+      if (error.response?.data?.detail) {
+        setError(error.response.data.detail)
+      } else {
+        setError("Unable to delete company")
+      }
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -79,11 +88,14 @@ function Companies() {
         </div>
 
         <button
-          type="button" onClick={() => navigate('/companies/new')}
+          type="button"
+          onClick={() => {
+            setCompanyToEdit(null)
+            setShowForm(true)
+          }}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
         >
           <Plus size={18} />
-
           Add Company
         </button>
 
@@ -183,6 +195,7 @@ function Companies() {
 
                       <button
                         type="button"
+                        onClick={() => setCompanyToView(company.id)}
                         className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                         title="View"
                       >
@@ -190,7 +203,10 @@ function Companies() {
                       </button>
 
                       <button
-                        type="button"
+                        type="button" onClick={() => {
+                          setCompanyToEdit(company)
+                          setShowForm(true)
+                        }}
                         className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                         title="Edit"
                       >
@@ -200,7 +216,7 @@ function Companies() {
                       <button
                         type="button"
                         onClick={() =>
-                          handleDelete(company.id)
+                          setCompanyToDelete(company)
                         }
                         className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
                         title="Delete"
@@ -222,6 +238,100 @@ function Companies() {
         )}
 
       </div>
+
+        {showForm && (
+          <CompanyForm company={companyToEdit} onClose={() => {
+            setShowForm(false)
+            setCompanyToEdit(null)
+          }}
+          onSuccess={() => {
+            setShowForm(false)
+            setCompanyToEdit(null)
+            loadCompanies()
+          }}
+          />
+        )}
+
+      {companyToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !deleting) {
+              setCompanyToDelete(null)
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+
+              <h2 className="text-lg font-semibold text-slate-900">
+                Delete Company
+              </h2>
+
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setCompanyToDelete(null)}
+                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+              >
+                ✕
+              </button>
+
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-6">
+
+              <p className="text-sm leading-6 text-slate-600">
+                Are you sure you want to delete
+                {' '}
+                <span className="font-semibold text-slate-900">
+                  {companyToDelete.name}
+                </span>
+                ?
+              </p>
+
+              <p className="mt-2 text-sm text-slate-500">
+                This action cannot be undone.
+              </p>
+
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
+
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setCompanyToDelete(null)}
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDelete}
+                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {deleting ? 'Deleting...' : 'Delete Company'}
+              </button>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {companyToView !== null && (
+        <CompanyView
+          companyId={companyToView}
+          onClose={() => setCompanyToView(null)}
+        />
+      )}
 
     </div>
   )
