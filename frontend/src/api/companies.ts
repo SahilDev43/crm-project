@@ -1,6 +1,6 @@
 import apiClient from "./client";
 
-import type { Company, CompanyCreate, CompanyUpdate } from "../types/company"
+import type { Company, CompanyCreate, CompanyUpdate, CompanyApiKey, CompanyApiKeyCreate, CompanyApiKeyCreateResponse } from "../types/company"
 
 export const getCompanies = async (): Promise<Company[]> => {
     const response = await apiClient.get<Company[]>(
@@ -31,6 +31,38 @@ export const createCompany = async (
     return response.data
 }
 
+export const uploadCompanyLogo = async (
+    companyId: number,
+    file: File
+): Promise<Company> => {
+
+    const formData = new FormData()
+
+    formData.append('logo', file)
+
+    const response = await apiClient.post<Company>(
+        `/companies/${companyId}/logo`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        }
+    )
+    
+    return response.data
+}
+
+export const removeCompanyLogo = async (
+    companyId: number,   
+): Promise<Company> => {
+    const response = await apiClient.delete<Company>(
+        `/companies/${companyId}/logo`
+    )
+
+    return response.data
+}
+
 export const updateCompany = async (
     companyId: number,
     data: CompanyUpdate
@@ -48,5 +80,37 @@ export const deleteCompany = async (
 ): Promise<void> => {
     await apiClient.delete(
         `/companies/${companyId}`
+    )
+}
+
+export const getCompanyApiKeys = async (
+    companyId: number
+): Promise<CompanyApiKey[]> => {
+    const response = await apiClient.get<CompanyApiKey[]>(
+        `/companies/${companyId}/api-keys`
+    )
+
+    return response.data
+}
+
+export const createCompanyApiKey = async (
+    companyId: number,
+    data: CompanyApiKeyCreate
+): Promise<CompanyApiKeyCreateResponse> => {
+    const response = 
+    await apiClient.post<CompanyApiKeyCreateResponse>(
+        `/companies/${companyId}/api-keys`,
+        data
+    )
+
+    return response.data
+}
+
+export const deleteCompanyApiKey = async (
+    companyId: number,
+    keyId: number
+): Promise<void> => {
+    await apiClient.delete(
+        `/companies/${companyId}/api-keys/${keyId}`
     )
 }

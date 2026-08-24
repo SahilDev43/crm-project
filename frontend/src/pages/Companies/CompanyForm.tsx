@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { X, Save } from 'lucide-react'
+import { X, Save, Upload, Trash2 } from 'lucide-react'
 
 import {
   createCompany,
+  removeCompanyLogo,
+  uploadCompanyLogo,
   updateCompany,
 } from '../../api/companies'
+import { getAssetUrl } from '../../api/client'
 
 import type {
   Company,
@@ -32,6 +35,9 @@ function CompanyForm({
   const [stateCode, setStateCode] = useState('')
 
   const [isActive, setIsActive] = useState(true)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [removeExistingLogo, setRemoveExistingLogo] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -59,8 +65,69 @@ function CompanyForm({
       setIsActive(true)
     }
 
+    setLogoFile(null)
+    setLogoPreview(null)
+    setRemoveExistingLogo(false)
     setError('')
   }, [company])
+
+  useEffect(() => {
+    if (!logoFile) {
+      setLogoPreview(null)
+      return
+    }
+
+    const previewUrl = URL.createObjectURL(logoFile)
+    setLogoPreview(previewUrl)
+
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [logoFile])
+
+  const handleLogoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null
+
+    if (!file) {
+      return
+    }
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+
+    if (!allowedTypes.includes(file.type)) {
+      setError('Please choose a JPG, PNG, or WebP logo.')
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('The logo must be 2 MB or smaller.')
+      event.target.value = ''
+      return
+    }
+
+    setError('')
+    setLogoFile(file)
+    setRemoveExistingLogo(false)
+  }
+
+  const getErrorMessage = (error: any, fallback: string) => {
+    const detail = error.response?.data?.detail
+
+    if (typeof detail === 'string') {
+      return detail
+    }
+
+    if (Array.isArray(detail)) {
+      const messages = detail
+        .map((item) => item?.msg)
+        .filter((message): message is string => typeof message === 'string')
+
+      if (messages.length > 0) {
+        return messages.join('. ')
+      }
+    }
+
+    return fallback
+  }
 
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>
@@ -71,6 +138,8 @@ function CompanyForm({
     setLoading(true)
 
     try {
+      let savedCompany: Company
+
       if (company) {
         const data: CompanyUpdate = {
           name,
@@ -85,7 +154,7 @@ function CompanyForm({
           is_active: isActive,
         }
 
-        await updateCompany(
+        savedCompany = await updateCompany(
           company.id,
           data
         )
@@ -102,22 +171,25 @@ function CompanyForm({
             stateCode || null,
         }
 
-        await createCompany(data)
+        savedCompany = await createCompany(data)
+      }
+
+      if (logoFile) {
+        await uploadCompanyLogo(savedCompany.id, logoFile)
+      } else if (company?.logo && removeExistingLogo) {
+        await removeCompanyLogo(savedCompany.id)
       }
 
       onSuccess()
     } catch (error: any) {
-      if (error.response?.data?.detail) {
-        setError(
-          error.response.data.detail
-        )
-      } else {
-        setError(
+      setError(
+        getErrorMessage(
+          error,
           isEditMode
             ? 'Unable to update company.'
             : 'Unable to create company.'
         )
-      }
+      )
     } finally {
       setLoading(false)
     }
@@ -197,6 +269,63 @@ function CompanyForm({
                   placeholder="Enter company name"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Company logo */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Company Logo
+                </label>
+
+                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 p-4">
+                  {logoPreview ? (
+                    <img
+                      src={logoPreview}
+                      alt="New company logo preview"
+                      className="h-16 w-16 rounded-xl border border-slate-200 object-cover"
+                    />
+                  ) : company?.logo && !removeExistingLogo ? (
+                    <img
+                      src={getAssetUrl(company.logo)}
+                      alt={`${company.name} logo`}
+                      className="h-16 w-16 rounded-xl border border-slate-200 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-blue-50 text-xl font-bold text-blue-600">
+                      {name.charAt(0).toUpperCase() || 'C'}
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                      <Upload size={16} />
+                      {logoFile || company?.logo ? 'Replace logo' : 'Choose logo'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleLogoChange}
+                        className="sr-only"
+                      />
+                    </label>
+                    <p className="mt-2 text-xs text-slate-500">
+                      JPG, PNG, or WebP, up to 2 MB.
+                    </p>
+                  </div>
+
+                  {(logoFile || (company?.logo && !removeExistingLogo)) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLogoFile(null)
+                        setRemoveExistingLogo(Boolean(company?.logo))
+                      }}
+                      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 size={16} />
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Address */}

@@ -27,3 +27,21 @@ export interface CompanyUpdate {
     state_code?: string | null
     is_active?: boolean | null
 }
+
+export interface CompanyApiKey {
+    id: number
+    company_id: number
+    name: string
+    key_prefix: string
+    is_active: boolean
+    created_at: string
+    updated_at: string
+}
+
+export interface CompanyApiKeyCreate {
+    name: string
+}
+
+export interface CompanyApiKeyCreateResponse extends CompanyApiKey {
+    api_key: string
+}
