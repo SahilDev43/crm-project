@@ -4,6 +4,10 @@ import {
   Pencil,
   Trash2,
   Eye,
+  Loader2,
+  Building2,
+  X,
+  AlertTriangle,
 } from 'lucide-react'
 
 import {
@@ -93,7 +97,7 @@ function Companies() {
             setCompanyToEdit(null)
             setShowForm(true)
           }}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
         >
           <Plus size={18} />
           Add Company
@@ -110,11 +114,13 @@ function Companies() {
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
 
         {loading ? (
-          <div className="p-8 text-center text-sm text-slate-500">
+          <div className="flex flex-col items-center gap-3 p-12 text-center text-sm text-slate-500">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
             Loading companies...
           </div>
         ) : companies.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-500">
+          <div className="flex flex-col items-center gap-3 p-12 text-center text-sm text-slate-500">
+            <Building2 className="h-8 w-8 text-slate-300" />
             No companies found.
           </div>
         ) : (
@@ -152,7 +158,7 @@ function Companies() {
 
                 <tr
                   key={company.id}
-                  className="hover:bg-slate-50"
+                  className="transition-colors hover:bg-slate-50"
                 >
 
                   <td className="px-6 py-4">
@@ -196,7 +202,7 @@ function Companies() {
                       <button
                         type="button"
                         onClick={() => setCompanyToView(company.id)}
-                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
                         title="View"
                       >
                         <Eye size={17} />
@@ -207,7 +213,7 @@ function Companies() {
                           setCompanyToEdit(company)
                           setShowForm(true)
                         }}
-                        className="rounded-lg p-2 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
+                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600"
                         title="Edit"
                       >
                         <Pencil size={17} />
@@ -218,7 +224,7 @@ function Companies() {
                         onClick={() =>
                           setCompanyToDelete(company)
                         }
-                        className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
                         title="Delete"
                       >
                         <Trash2 size={17} />
@@ -266,17 +272,25 @@ function Companies() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
 
-              <h2 className="text-lg font-semibold text-slate-900">
-                Delete Company
-              </h2>
+              <div className="flex items-center gap-3">
+
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600">
+                  <AlertTriangle size={18} />
+                </div>
+
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Delete Company
+                </h2>
+
+              </div>
 
               <button
                 type="button"
                 disabled={deleting}
                 onClick={() => setCompanyToDelete(null)}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
               >
-                ✕
+                <X size={18} />
               </button>
 
             </div>
@@ -306,7 +320,7 @@ function Companies() {
                 type="button"
                 disabled={deleting}
                 onClick={() => setCompanyToDelete(null)}
-                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -315,8 +329,11 @@ function Companies() {
                 type="button"
                 disabled={deleting}
                 onClick={handleDelete}
-                className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
+                {deleting && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 {deleting ? 'Deleting...' : 'Delete Company'}
               </button>
 

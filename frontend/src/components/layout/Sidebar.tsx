@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut } from "lucide-react";
+import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut, User } from "lucide-react";
 
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../../auth/AuthContext"
@@ -21,7 +21,7 @@ const navigation = [
     },
     {
         name: 'Deals',
-        path: 'deals',
+        path: '/deals',
         icon: FileText,
     },
     {
@@ -39,6 +39,11 @@ const navigation = [
         path: '/payroll',
         icon: WalletCards,
     },
+    {
+        name: 'Users',
+        path: '/users',
+        icon: User,
+    }
 ]
 
 function Sidebar() {

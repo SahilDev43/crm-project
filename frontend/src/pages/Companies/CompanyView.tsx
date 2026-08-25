@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { X, Upload, Trash2 } from 'lucide-react'
+import { X, Upload, Trash2, Loader2, KeyRound, ShieldOff } from 'lucide-react'
 
 import { getCompany, uploadCompanyLogo, removeCompanyLogo } from '../../api/companies'
+import { getAssetUrl } from '../../api/client'
 import type { Company } from '../../types/company'
 import { getCompanyApiKeys, deleteCompanyApiKey } from '../../api/companies'
 import type { CompanyApiKey } from '../../types/company'
@@ -26,8 +27,11 @@ function CompanyView({
     const [logoError, setLogoError] = useState('')
     const [apiKeys, setApiKeys] = useState<CompanyApiKey[]>([])
     const [loadingApiKeys, setLoadingApiKeys] = useState(false)
+    const [apiKeyError, setApiKeyError] = useState('')
     const [showApiKeyForm, setShowApiKeyForm] = useState(false)
     const [createdApiKey, setCreatedApiKey] = useState<string | null>(null)
+    const [keyToRevoke, setKeyToRevoke] = useState<CompanyApiKey | null>(null)
+    const [revoking, setRevoking] = useState(false)
 
     useEffect(() => {
         const loadCompany = async () => {
@@ -122,27 +126,39 @@ function CompanyView({
     const loadApiKeys = async () => {
         try {
             setLoadingApiKeys(true)
+            setApiKeyError('')
 
             const data = await getCompanyApiKeys(companyId)
 
             setApiKeys(data)
         } catch {
-            setLogoError('Unable to load API keys.')
+            setApiKeyError('Unable to load API keys.')
         } finally {
             setLoadingApiKeys(false)
         }
     }
 
-    const handleDeleteApiKey = async (key: CompanyApiKey) => {
+    const handleRevokeApiKey = async () => {
+        if (!keyToRevoke) {
+            return
+        }
+
         try {
+            setRevoking(true)
+            setApiKeyError('')
+
             await deleteCompanyApiKey(
                 companyId,
-                key.id
+                keyToRevoke.id
             )
+
+            setKeyToRevoke(null)
 
             await loadApiKeys()
         } catch {
-            setLogoError('Unable to revoke API key.')
+            setApiKeyError('Unable to revoke API key.')
+        } finally {
+            setRevoking(false)
         }
     }
 
@@ -185,7 +201,8 @@ function CompanyView({
                     <div className="p-6">
 
                         {loading && (
-                            <div className="py-10 text-center text-sm text-slate-500">
+                            <div className="flex flex-col items-center gap-3 py-10 text-sm text-slate-500">
+                                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
                                 Loading company...
                             </div>
                         )}
@@ -206,7 +223,7 @@ function CompanyView({
 
                                         {company.logo ? (
                                             <img
-                                                src={company.logo}
+                                                src={getAssetUrl(company.logo)}
                                                 alt={company.name}
                                                 className="h-20 w-20 rounded-xl border border-slate-200 object-cover"
                                             />
@@ -223,12 +240,16 @@ function CompanyView({
                                             <div className="flex items-center gap-2">
 
                                                 <label
-                                                    className={`flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 ${uploadingLogo
+                                                    className={`flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 ${uploadingLogo
                                                         ? 'pointer-events-none opacity-50'
                                                         : ''
                                                         }`}
                                                 >
-                                                    <Upload size={15} />
+                                                    {uploadingLogo ? (
+                                                        <Loader2 size={15} className="animate-spin" />
+                                                    ) : (
+                                                        <Upload size={15} />
+                                                    )}
 
                                                     {uploadingLogo
                                                         ? 'Uploading...'
@@ -250,9 +271,13 @@ function CompanyView({
                                                         type="button"
                                                         onClick={handleLogoRemove}
                                                         disabled={removingLogo}
-                                                        className="flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        className="flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                                                     >
-                                                        <Trash2 size={15} />
+                                                        {removingLogo ? (
+                                                            <Loader2 size={15} className="animate-spin" />
+                                                        ) : (
+                                                            <Trash2 size={15} />
+                                                        )}
 
                                                         {removingLogo
                                                             ? 'Removing...'
@@ -374,88 +399,103 @@ function CompanyView({
 
                                 </div>
 
-                            </div>
-                        )}
+                                {/* API Keys */}
+                                <div className="border-t border-slate-200 pt-6">
 
-                        <div className="border-t border-slate-200 pt-6">
+                                    <div className="mb-4 flex items-center justify-between">
 
-                            <div className="mb-4 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-slate-900">
+                                                API Keys
+                                            </h3>
 
-                                <div>
-                                    <h3 className="text-sm font-semibold text-slate-900">
-                                        API Keys
-                                    </h3>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Manage API keys used to access this company.
-                                    </p>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowApiKeyForm(true)}
-                                    className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
-                                >
-                                    + Create API Key
-                                </button>
-
-                            </div>
-
-                            {loadingApiKeys ? (
-                                <div className="rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
-                                    Loading API keys...
-                                </div>
-                            ) : apiKeys.length === 0 ? (
-                                <div className="rounded-lg border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500">
-                                    No API keys found.
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-
-                                    {apiKeys.map((key) => (
-
-                                        <div
-                                            key={key.id}
-                                            className="flex items-center justify-between rounded-lg border border-slate-200 p-4"
-                                        >
-
-                                            <div>
-
-                                                <p className="text-sm font-medium text-slate-900">
-                                                    {key.name}
-                                                </p>
-
-                                                <p className="mt-1 font-mono text-xs text-slate-500">
-                                                    {key.key_prefix}••••••••
-                                                </p>
-
-                                                <p className="mt-1 text-xs text-slate-400">
-                                                    Created{' '}
-                                                    {new Date(
-                                                        key.created_at
-                                                    ).toLocaleDateString()}
-                                                </p>
-
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    void handleDeleteApiKey(key)
-                                                }}
-                                                className="rounded-lg px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
-                                            >
-                                                Revoke
-                                            </button>
-
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                Manage API keys used to access this company.
+                                            </p>
                                         </div>
 
-                                    ))}
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowApiKeyForm(true)}
+                                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-700"
+                                        >
+                                            + Create API Key
+                                        </button>
+
+                                    </div>
+
+                                    {apiKeyError && (
+                                        <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                                            {apiKeyError}
+                                        </div>
+                                    )}
+
+                                    {loadingApiKeys ? (
+                                        <div className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 p-4 text-center text-sm text-slate-500">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Loading API keys...
+                                        </div>
+                                    ) : apiKeys.length === 0 ? (
+                                        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
+                                            <KeyRound className="h-5 w-5 text-slate-300" />
+                                            No API keys found.
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+
+                                            {apiKeys.map((key) => (
+
+                                                <div
+                                                    key={key.id}
+                                                    className={`flex items-center justify-between rounded-lg border border-slate-200 p-4 transition-opacity ${key.is_active ? '' : 'opacity-50'
+                                                        }`}
+                                                >
+
+                                                    <div>
+
+                                                        <p className="flex items-center gap-2 text-sm font-medium text-slate-900">
+                                                            {key.name}
+                                                            {!key.is_active && (
+                                                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                                                                    Revoked
+                                                                </span>
+                                                            )}
+                                                        </p>
+
+                                                        <p className="mt-1 font-mono text-xs text-slate-500">
+                                                            {key.key_prefix}••••••••
+                                                        </p>
+
+                                                        <p className="mt-1 text-xs text-slate-400">
+                                                            Created{' '}
+                                                            {new Date(
+                                                                key.created_at
+                                                            ).toLocaleDateString()}
+                                                        </p>
+
+                                                    </div>
+
+                                                    {key.is_active && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setKeyToRevoke(key)}
+                                                            className="rounded-lg px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                                                        >
+                                                            Revoke
+                                                        </button>
+                                                    )}
+
+                                                </div>
+
+                                            ))}
+
+                                        </div>
+                                    )}
 
                                 </div>
-                            )}
 
-                        </div>
+                            </div>
+                        )}
 
                     </div>
 
@@ -465,7 +505,7 @@ function CompanyView({
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
                         >
                             Close
                         </button>
@@ -492,6 +532,69 @@ function CompanyView({
                     apiKey={createdApiKey}
                     onClose={() => setCreatedApiKey(null)}
                 />
+            )}
+
+            {keyToRevoke && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget && !revoking) {
+                            setKeyToRevoke(null)
+                        }
+                    }}
+                >
+                    <div className="w-full max-w-md rounded-xl bg-white shadow-xl">
+
+                        <div className="flex items-center gap-3 border-b border-slate-200 px-6 py-4">
+
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-red-600">
+                                <ShieldOff size={18} />
+                            </div>
+
+                            <h2 className="text-lg font-semibold text-slate-900">
+                                Revoke API Key
+                            </h2>
+
+                        </div>
+
+                        <div className="px-6 py-6">
+                            <p className="text-sm leading-6 text-slate-600">
+                                Are you sure you want to revoke
+                                {' '}
+                                <span className="font-semibold text-slate-900">
+                                    {keyToRevoke.name}
+                                </span>
+                                ? Any requests using this key will stop working immediately.
+                            </p>
+                        </div>
+
+                        <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
+
+                            <button
+                                type="button"
+                                disabled={revoking}
+                                onClick={() => setKeyToRevoke(null)}
+                                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={revoking}
+                                onClick={handleRevokeApiKey}
+                                className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {revoking && (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                )}
+                                {revoking ? 'Revoking...' : 'Revoke Key'}
+                            </button>
+
+                        </div>
+
+                    </div>
+                </div>
             )}
         </>
     )

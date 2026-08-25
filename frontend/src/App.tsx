@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Companies from './pages/Companies/Companies'
+import User from './pages/Users/User'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -97,6 +98,11 @@ function App() {
             <Route
               path="/payroll"
               element={<ComingSoon />}
+            />
+
+            <Route
+              path="/users"
+              element={<User />}
             />
 
           </Route>

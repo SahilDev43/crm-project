@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CheckCircle2, Copy, X } from "lucide-react"
+import { Check, CheckCircle2, Copy, X } from "lucide-react"
 
 interface ApiKeyCreatedModalProps {
     apiKey: string
@@ -11,17 +11,21 @@ function ApiKeyCreatedModal({
     onClose
 }: ApiKeyCreatedModalProps) {
     const [copied, setCopied] = useState(false)
+    const [copyError, setCopyError] = useState(false)
 
     const handleCopy = async () => {
-        await navigator.clipboard.writeText(
-            apiKey
-        )
+        try {
+            await navigator.clipboard.writeText(apiKey)
 
-        setCopied(true)
+            setCopyError(false)
+            setCopied(true)
 
-        setTimeout(() => {
-            setCopied(false)
-        }, 2000)
+            setTimeout(() => {
+                setCopied(false)
+            }, 2000)
+        } catch {
+            setCopyError(true)
+        }
     }
 
     return (
@@ -79,9 +83,13 @@ function ApiKeyCreatedModal({
                             <button
                                 type="button"
                                 onClick={handleCopy}
-                                className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800"
+                                className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-800"
                             >
-                                <Copy size={16} />
+                                {copied ? (
+                                    <Check size={16} className="text-green-400" />
+                                ) : (
+                                    <Copy size={16} />
+                                )}
 
                                 {copied
                                     ? 'Copied'
@@ -89,6 +97,12 @@ function ApiKeyCreatedModal({
                             </button>
 
                         </div>
+
+                        {copyError && (
+                            <p className="mt-2 text-xs text-red-600">
+                                Unable to copy automatically. Please select and copy the key manually.
+                            </p>
+                        )}
 
                     </div>
 
@@ -99,7 +113,7 @@ function ApiKeyCreatedModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                        className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
                     >
                         Done
                     </button>

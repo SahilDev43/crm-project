@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { X, KeyRound } from 'lucide-react'
+import { X, KeyRound, Loader2 } from 'lucide-react'
 
 import { createCompanyApiKey } from "../../api/companies"
 
@@ -18,6 +18,26 @@ function CompanyApiKeyForm({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
+    const getErrorMessage = (error: any, fallback: string) => {
+        const detail = error.response?.data?.detail
+
+        if (typeof detail === 'string') {
+            return detail
+        }
+
+        if (Array.isArray(detail)) {
+            const messages = detail
+                .map((item) => item?.msg)
+                .filter((message): message is string => typeof message === 'string')
+
+            if (messages.length > 0) {
+                return messages.join('. ')
+            }
+        }
+
+        return fallback
+    }
+
     const handleSubmit = async (
         event: React.FormEvent<HTMLFormElement>
     ) => {
@@ -34,15 +54,9 @@ function CompanyApiKeyForm({
 
             onSuccess(response.api_key)
         } catch (error: any) {
-            if (error.response?.data?.detail) {
-                setError(
-                    error.response.data.detail
-                )
-            } else {
-                setError(
-                    'Unable to create API key.'
-                )
-            }
+            setError(
+                getErrorMessage(error, 'Unable to create API key.')
+            )
         } finally {
             setLoading(false)
         }
@@ -109,7 +123,7 @@ function CompanyApiKeyForm({
                             minLength={2}
                             maxLength={100}
                             placeholder="e.g. Production API"
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                         />
 
                         <p className="mt-2 text-xs text-slate-500">
@@ -124,7 +138,7 @@ function CompanyApiKeyForm({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
                         >
                             Cancel
                         </button>
@@ -132,8 +146,11 @@ function CompanyApiKeyForm({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
+                            {loading && (
+                                <Loader2 size={16} className="animate-spin" />
+                            )}
                             {loading
                                 ? 'Creating...'
                                 : 'Create API Key'}

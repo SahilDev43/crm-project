@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { X, Save, Upload, Trash2 } from 'lucide-react'
+import { X, Save, Upload, Trash2, Loader2 } from 'lucide-react'
 
 import {
   createCompany,
@@ -267,7 +267,7 @@ function CompanyForm({
                   minLength={2}
                   maxLength={255}
                   placeholder="Enter company name"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
 
@@ -343,7 +343,7 @@ function CompanyForm({
                   }
                   rows={3}
                   placeholder="Enter company address"
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
 
@@ -365,7 +365,7 @@ function CompanyForm({
                     }
                     maxLength={20}
                     placeholder="03AAAAA0000A1Z5"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm uppercase outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm uppercase outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   />
                 </div>
 
@@ -384,7 +384,7 @@ function CompanyForm({
                     }
                     maxLength={100}
                     placeholder="Punjab"
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   />
                 </div>
 
@@ -406,7 +406,7 @@ function CompanyForm({
                   }
                   maxLength={10}
                   placeholder="03"
-                  className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
 
@@ -424,7 +424,7 @@ function CompanyForm({
                           event.target.checked
                         )
                       }
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500/30"
                     />
 
                     <div>
@@ -453,7 +453,7 @@ function CompanyForm({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
             >
               Cancel
             </button>
@@ -461,9 +461,13 @@ function CompanyForm({
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Save size={17} />
+              {loading ? (
+                <Loader2 size={17} className="animate-spin" />
+              ) : (
+                <Save size={17} />
+              )}
 
               {loading
                 ? isEditMode
