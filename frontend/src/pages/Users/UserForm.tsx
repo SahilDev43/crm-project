@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Upload, Trash2 } from 'lucide-react'
 
-import { createUser } from '../../api/users'
+import { createUser, uploadUserProfileImage } from '../../api/users'
 import { getCompanies } from '../../api/companies'
 import { getRoles } from '../../api/roles'
 
@@ -44,6 +44,24 @@ function UserForm({
 
   const [error, setError] =
     useState('')
+
+  const [imageFile, setImageFile] =
+    useState<File | null>(null)
+
+  const [imagePreview, setImagePreview] =
+    useState<string | null>(null)
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview(null)
+      return
+    }
+
+    const previewUrl = URL.createObjectURL(imageFile)
+    setImagePreview(previewUrl)
+
+    return () => URL.revokeObjectURL(previewUrl)
+  }, [imageFile])
 
   useEffect(() => {
     const loadOptions = async () => {
@@ -98,6 +116,31 @@ function UserForm({
     }))
   }
 
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.')
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('The image must be 5 MB or smaller.')
+      event.target.value = ''
+      return
+    }
+
+    setError('')
+    setImageFile(file)
+  }
+
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>
   ) => {
@@ -113,7 +156,11 @@ function UserForm({
     try {
       setLoading(true)
 
-      await createUser(form)
+      const newUser = await createUser(form)
+
+      if (imageFile) {
+        await uploadUserProfileImage(newUser.id, imageFile)
+      }
 
       onSuccess()
     } catch (error: any) {
@@ -171,6 +218,53 @@ function UserForm({
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Profile Photo
+                </label>
+
+                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-slate-200 p-4">
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="New profile photo preview"
+                      className="h-16 w-16 rounded-full border border-slate-200 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-xl font-bold text-blue-600">
+                      {form.first_name.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
+                      <Upload size={16} />
+                      {imageFile ? 'Replace photo' : 'Choose photo'}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={handleImageChange}
+                        className="sr-only"
+                      />
+                    </label>
+                    <p className="mt-2 text-xs text-slate-500">
+                      JPG, PNG, or WebP, up to 5 MB.
+                    </p>
+                  </div>
+
+                  {imageFile && (
+                    <button
+                      type="button"
+                      onClick={() => setImageFile(null)}
+                      className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                    >
+                      <Trash2 size={16} />
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
                   First Name *
@@ -201,7 +295,22 @@ function UserForm({
                 />
               </div>
 
-              <div className="sm:col-span-2">
+            <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  Phone
+                </label>
+
+                <input
+                  type="tel"
+                  name="phone"
+                  value={form.phone ?? ''}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  placeholder="9876543210"
+                />
+              </div> 
+
+              <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
                   Email *
                 </label>
@@ -214,21 +323,6 @@ function UserForm({
                   required
                   className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
                   placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Phone
-                </label>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone ?? ''}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
-                  placeholder="9876543210"
                 />
               </div>
 

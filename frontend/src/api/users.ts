@@ -52,3 +52,29 @@ export const deleteUser = async (
     `/users/${userId}`
   )
 }
+
+export const uploadUserProfileImage = async (
+    userId: number,
+    file: File
+): Promise<User> => {
+    const formData = new FormData()
+
+    formData.append('image', file)
+
+    const response = await apiClient.post<User>(
+        `/users/${userId}/profile-image`,
+        formData
+    )
+
+    return response.data
+}
+
+export const removeUserProfileImage = async (
+    userId: number
+): Promise<User> => {
+    const response = await apiClient.delete<User>(
+        `/users/${userId}/profile-image`
+    )
+
+    return response.data
+}

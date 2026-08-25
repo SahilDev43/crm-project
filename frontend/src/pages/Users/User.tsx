@@ -2,14 +2,21 @@ import { useEffect, useState } from "react"
 import { Plus, Eye, Pencil, Trash2 } from "lucide-react"
 
 import { getUsers } from '../../api/users'
+import { getAssetUrl } from '../../api/client'
 import type { User as UserType } from '../../types/user'
 import UserForm from './UserForm'
+import UserView from "./UserView"
+import UserEdit from './UserEdit'
+import UserDelete from './UserDelete'
 
 function User() {
     const [users, setUsers] = useState<UserType[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [showUserForm, setShowUserForm] = useState(false)
+    const [viewUserId, setViewUserId] = useState<number | null>(null)
+    const [editUserId, setEditUserId] = useState<number | null>(null)
+    const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
 
     const loadUsers = async () => {
         try {
@@ -144,7 +151,7 @@ function User() {
 
                                                 {user.profile_image ? (
                                                     <img
-                                                        src={user.profile_image}
+                                                        src={getAssetUrl(user.profile_image)}
                                                         alt={`${user.first_name} ${user.last_name}`}
                                                         className="h-9 w-9 rounded-full object-cover"
                                                     />
@@ -190,8 +197,8 @@ function User() {
 
                                             <span
                                                 className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${user.is_active
-                                                        ? 'bg-green-50 text-green-700'
-                                                        : 'bg-slate-100 text-slate-500'
+                                                    ? 'bg-green-50 text-green-700'
+                                                    : 'bg-slate-100 text-slate-500'
                                                     }`}
                                             >
                                                 {user.is_active
@@ -206,7 +213,7 @@ function User() {
                                             <div className="flex items-center gap-1">
 
                                                 <button
-                                                    type="button"
+                                                    type="button" onClick={() => setViewUserId(user.id)}
                                                     className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                                     title="View"
                                                 >
@@ -215,6 +222,7 @@ function User() {
 
                                                 <button
                                                     type="button"
+                                                    onClick={() => setEditUserId(user.id)}
                                                     className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                                                     title="Edit"
                                                 >
@@ -223,6 +231,7 @@ function User() {
 
                                                 <button
                                                     type="button"
+                                                    onClick={() => setDeleteUserId(user.id)}
                                                     className="rounded-lg p-2 text-red-500 hover:bg-red-50"
                                                     title="Delete"
                                                 >
@@ -249,11 +258,52 @@ function User() {
 
             {showUserForm && (
                 <UserForm
-                onClose={() => setShowUserForm(false)}
-                onSuccess={() => {
-                    setShowUserForm(false)
-                    loadUsers()
-                }}
+                    onClose={() => setShowUserForm(false)}
+                    onSuccess={() => {
+                        setShowUserForm(false)
+                        loadUsers()
+                    }}
+                />
+            )}
+
+            {viewUserId !== null && (
+                <UserView
+                    userId={viewUserId}
+                    onClose={() => setViewUserId(null)}
+                />
+            )}
+
+            {editUserId !== null && (
+                <UserEdit
+                    userId={editUserId}
+                    onClose={() => setEditUserId(null)}
+                    onSuccess={() => {
+                        setEditUserId(null)
+                        loadUsers()
+                    }}
+                />
+            )}
+
+            {deleteUserId !== null && (
+                <UserDelete
+                    userId={deleteUserId}
+                    userName={
+                        users.find(
+                            (user) => user.id === deleteUserId
+                        )
+                            ? `${users.find(
+                                (user) => user.id === deleteUserId
+                            )?.first_name} ${users.find(
+                                (user) => user.id === deleteUserId
+                            )?.last_name
+                            }`
+                            : 'this user'
+                    }
+                    onClose={() => setDeleteUserId(null)}
+                    onSuccess={() => {
+                        setDeleteUserId(null)
+                        loadUsers()
+                    }}
                 />
             )}
 
