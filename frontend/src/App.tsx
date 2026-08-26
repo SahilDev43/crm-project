@@ -13,6 +13,7 @@ import Companies from './pages/Companies/Companies'
 import User from './pages/Users/User'
 import Roles from './pages/Roles/Roles'
 import Permissions from './pages/Permissions/Permissions'
+import Leads from './pages/Leads/Leads'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -79,7 +80,7 @@ function App() {
 
             <Route
               path="/leads"
-              element={<ComingSoon />}
+              element={<Leads />}
             />
 
             <Route
