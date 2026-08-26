@@ -72,11 +72,11 @@ function UserForm({
           companiesData,
           rolesData,
         ] = await Promise.all([
-          getCompanies(),
+          getCompanies({ page_size: 100 }),
           getRoles(),
         ])
 
-        setCompanies(companiesData)
+        setCompanies(companiesData.items)
         setRoles(rolesData)
       } catch (error: any) {
         if (error.response?.data?.detail) {
@@ -231,7 +231,7 @@ function UserForm({
                       className="h-16 w-16 rounded-full border border-slate-200 object-cover"
                     />
                   ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-xl font-bold text-blue-600">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
                       {form.first_name.charAt(0).toUpperCase() || 'U'}
                     </div>
                   )}
@@ -275,7 +275,7 @@ function UserForm({
                   value={form.first_name}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                   placeholder="John"
                 />
               </div>
@@ -290,7 +290,7 @@ function UserForm({
                   value={form.last_name}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                   placeholder="Doe"
                 />
               </div>
@@ -305,7 +305,7 @@ function UserForm({
                   name="phone"
                   value={form.phone ?? ''}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                   placeholder="9876543210"
                 />
               </div> 
@@ -321,7 +321,7 @@ function UserForm({
                   value={form.email}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                   placeholder="john@example.com"
                 />
               </div>
@@ -337,7 +337,7 @@ function UserForm({
                   value={form.password}
                   onChange={handleChange}
                   required
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                   placeholder="••••••••"
                 />
               </div>
@@ -353,7 +353,7 @@ function UserForm({
                   onChange={handleChange}
                   required
                   disabled={loadingOptions}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
                 >
                   <option value="">
                     {loadingOptions
@@ -382,7 +382,7 @@ function UserForm({
                   value={form.role_id ?? ''}
                   onChange={handleChange}
                   disabled={loadingOptions}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
                 >
                   <option value="">
                     No role
@@ -420,7 +420,7 @@ function UserForm({
                 loading ||
                 loadingOptions
               }
-              className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading
                 ? 'Creating...'

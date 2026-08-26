@@ -202,7 +202,7 @@ function CompanyView({
 
                         {loading && (
                             <div className="flex flex-col items-center gap-3 py-10 text-sm text-slate-500">
-                                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                                <Loader2 className="h-5 w-5 animate-spin text-red-600" />
                                 Loading company...
                             </div>
                         )}
@@ -228,7 +228,7 @@ function CompanyView({
                                                 className="h-20 w-20 rounded-xl border border-slate-200 object-cover"
                                             />
                                         ) : (
-                                            <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-blue-50 text-2xl font-bold text-blue-600">
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-red-50 text-2xl font-bold text-red-600">
                                                 {company.name
                                                     .charAt(0)
                                                     .toUpperCase()}
@@ -417,7 +417,7 @@ function CompanyView({
                                         <button
                                             type="button"
                                             onClick={() => setShowApiKeyForm(true)}
-                                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-700"
+                                            className="rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-red-700"
                                         >
                                             + Create API Key
                                         </button>

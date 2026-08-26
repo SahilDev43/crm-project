@@ -36,7 +36,7 @@ function Header() {
                             className="h-9 w-9 rounded-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-600">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 text-sm font-semibold text-red-600">
                             {user?.first_name?.charAt(0)}
                             {user?.last_name?.charAt(0)}
                         </div>

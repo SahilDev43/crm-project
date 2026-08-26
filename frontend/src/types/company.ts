@@ -28,6 +28,14 @@ export interface CompanyUpdate {
     is_active?: boolean | null
 }
 
+export interface CompanyListResponse {
+    items: Company[]
+    total: number
+    page: number
+    page_size: number
+    total_pages: number
+}
+
 export interface CompanyApiKey {
     id: number
     company_id: number

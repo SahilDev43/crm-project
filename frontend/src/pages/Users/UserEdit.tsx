@@ -73,12 +73,12 @@ function UserEdit({
           rolesData,
         ] = await Promise.all([
           getUser(userId),
-          getCompanies(),
+          getCompanies({ page_size: 100 }),
           getRoles(),
         ])
 
         setUser(userData)
-        setCompanies(companiesData)
+        setCompanies(companiesData.items)
         setRoles(rolesData)
 
         setForm({
@@ -275,7 +275,7 @@ function UserEdit({
                           className="h-16 w-16 rounded-full border border-slate-200 object-cover"
                         />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-xl font-bold text-blue-600">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-600">
                           {(form.first_name ?? '').charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
@@ -322,7 +322,7 @@ function UserEdit({
                       value={form.first_name ?? ''}
                       onChange={handleChange}
                       required
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -336,7 +336,7 @@ function UserEdit({
                       value={form.last_name ?? ''}
                       onChange={handleChange}
                       required
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -351,7 +351,7 @@ function UserEdit({
                       value={form.email ?? ''}
                       onChange={handleChange}
                       required
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -365,7 +365,7 @@ function UserEdit({
                       name="phone"
                       value={form.phone ?? ''}
                       onChange={handleChange}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -380,7 +380,7 @@ function UserEdit({
                       value={form.password ?? ''}
                       onChange={handleChange}
                       placeholder="Leave blank to keep current"
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     />
                   </div>
 
@@ -394,7 +394,7 @@ function UserEdit({
                       value={form.company_id ?? ''}
                       onChange={handleChange}
                       required
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     >
                       <option value="">
                         Select company
@@ -420,7 +420,7 @@ function UserEdit({
                       name="role_id"
                       value={form.role_id ?? ''}
                       onChange={handleChange}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     >
                       <option value="">
                         No role
@@ -446,7 +446,7 @@ function UserEdit({
                       name="is_active"
                       value={String(form.is_active)}
                       onChange={handleChange}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
                     >
                       <option value="true">
                         Active
@@ -478,7 +478,7 @@ function UserEdit({
             <button
               type="submit"
               disabled={loading || saving}
-              className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving
                 ? 'Saving...'

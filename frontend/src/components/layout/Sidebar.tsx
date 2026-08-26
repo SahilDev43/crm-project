@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut, User } from "lucide-react";
+import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut, User, ShieldCheck, KeyRound } from "lucide-react";
 
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../../auth/AuthContext"
@@ -43,6 +43,16 @@ const navigation = [
         name: 'Users',
         path: '/users',
         icon: User,
+    },
+    {
+        name: 'Permissions',
+        path: '/permissions',
+        icon: KeyRound,
+    },
+    {
+        name: 'Roles',
+        path: '/roles',
+        icon: ShieldCheck,
     }
 ]
 
@@ -68,7 +78,7 @@ function Sidebar() {
                             to={item.path}
                             className={({ isActive }) =>
                                 `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${isActive
-                                    ? 'bg-blue-50 text-blue-600'
+                                    ? 'bg-red-50 text-red-600'
                                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                 }`
                             }

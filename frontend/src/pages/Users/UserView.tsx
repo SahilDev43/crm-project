@@ -36,12 +36,12 @@ function UserView({
                 const [userData, companiesData, rolesData] =
                     await Promise.all([
                         getUser(userId),
-                        getCompanies(),
+                        getCompanies({ page_size: 100 }),
                         getRoles(),
                     ])
 
                 setUser(userData)
-                setCompanies(companiesData)
+                setCompanies(companiesData.items)
                 setRoles(rolesData)
             } catch (error: any) {
                 if (error.response?.data?.detail) {
@@ -189,7 +189,7 @@ function UserView({
                                                 className="h-24 w-24 rounded-full object-cover ring-4 ring-slate-100"
                                             />
                                         ) : (
-                                            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 text-3xl font-semibold text-blue-600 ring-4 ring-slate-100">
+                                            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-50 text-3xl font-semibold text-red-600 ring-4 ring-slate-100">
                                                 {user.first_name
                                                     .charAt(0)
                                                     .toUpperCase()}
@@ -202,7 +202,7 @@ function UserView({
                                                 fileInputRef.current?.click()
                                             }
                                             disabled={uploadingImage}
-                                            className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 disabled:opacity-50"
+                                            className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white shadow hover:bg-red-700 disabled:opacity-50"
                                             title="Change profile image"
                                         >
                                             <Camera size={15} />

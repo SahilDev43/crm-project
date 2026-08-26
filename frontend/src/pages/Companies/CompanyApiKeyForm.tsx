@@ -71,7 +71,7 @@ function CompanyApiKeyForm({
 
                     <div className="flex items-center gap-3">
 
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600">
                             <KeyRound size={18} />
                         </div>
 
@@ -123,7 +123,7 @@ function CompanyApiKeyForm({
                             minLength={2}
                             maxLength={100}
                             placeholder="e.g. Production API"
-                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors focus:border-red-500 focus:ring-4 focus:ring-red-500/10"
                         />
 
                         <p className="mt-2 text-xs text-slate-500">
@@ -146,7 +146,7 @@ function CompanyApiKeyForm({
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {loading && (
                                 <Loader2 size={16} className="animate-spin" />

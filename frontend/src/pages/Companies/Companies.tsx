@@ -8,6 +8,9 @@ import {
   Building2,
   X,
   AlertTriangle,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 
 import {
@@ -19,6 +22,8 @@ import type { Company } from '../../types/company'
 import CompanyForm from './CompanyForm'
 import CompanyView from './CompanyView'
 
+const PAGE_SIZE = 10
+
 function Companies() {
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -29,14 +34,40 @@ function Companies() {
   const [companyToView, setCompanyToView] = useState<number | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search.trim())
+      setPage(1)
+    }, 400)
+
+    return () => clearTimeout(timeout)
+  }, [search])
+
   const loadCompanies = async () => {
     try {
       setLoading(true)
       setError('')
 
-      const data = await getCompanies()
+      const data = await getCompanies({
+        search: debouncedSearch || undefined,
+        page,
+        page_size: PAGE_SIZE,
+      })
 
-      setCompanies(data)
+      if (data.items.length === 0 && page > 1 && data.total_pages > 0) {
+        setPage(data.total_pages)
+        return
+      }
+
+      setCompanies(data.items)
+      setTotal(data.total)
+      setTotalPages(data.total_pages)
     } catch {
       setError(
         'Unable to load companies.'
@@ -48,7 +79,7 @@ function Companies() {
 
   useEffect(() => {
     loadCompanies()
-  }, [])
+  }, [debouncedSearch, page])
 
   const handleDelete = async () => {
 
@@ -97,7 +128,7 @@ function Companies() {
             setCompanyToEdit(null)
             setShowForm(true)
           }}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700"
         >
           <Plus size={18} />
           Add Company
@@ -111,17 +142,34 @@ function Companies() {
         </div>
       )}
 
+      <div className="relative mb-4 max-w-sm">
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+        />
+
+        <input
+          type="text"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search companies..."
+          className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-red-500"
+        />
+      </div>
+
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
 
         {loading ? (
           <div className="flex flex-col items-center gap-3 p-12 text-center text-sm text-slate-500">
-            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+            <Loader2 className="h-5 w-5 animate-spin text-red-600" />
             Loading companies...
           </div>
         ) : companies.length === 0 ? (
           <div className="flex flex-col items-center gap-3 p-12 text-center text-sm text-slate-500">
             <Building2 className="h-8 w-8 text-slate-300" />
-            No companies found.
+            {debouncedSearch
+              ? `No companies match "${debouncedSearch}".`
+              : 'No companies found.'}
           </div>
         ) : (
           <table className="w-full">
@@ -213,7 +261,7 @@ function Companies() {
                           setCompanyToEdit(company)
                           setShowForm(true)
                         }}
-                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
                         title="Edit"
                       >
                         <Pencil size={17} />
@@ -244,6 +292,53 @@ function Companies() {
         )}
 
       </div>
+
+      {!loading && totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+
+          <p className="text-sm text-slate-500">
+            Showing{' '}
+            <span className="font-medium text-slate-700">
+              {(page - 1) * PAGE_SIZE + 1}
+            </span>
+            {'–'}
+            <span className="font-medium text-slate-700">
+              {Math.min(page * PAGE_SIZE, total)}
+            </span>
+            {' of '}
+            <span className="font-medium text-slate-700">
+              {total}
+            </span>
+          </p>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              disabled={page <= 1}
+              className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ChevronLeft size={16} />
+              Prev
+            </button>
+
+            <span className="text-sm text-slate-500">
+              Page {page} of {totalPages}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              disabled={page >= totalPages}
+              className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+              <ChevronRight size={16} />
+            </button>
+          </div>
+
+        </div>
+      )}
 
         {showForm && (
           <CompanyForm company={companyToEdit} onClose={() => {

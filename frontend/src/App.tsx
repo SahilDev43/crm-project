@@ -11,6 +11,8 @@ import Login from './pages/Login'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Companies from './pages/Companies/Companies'
 import User from './pages/Users/User'
+import Roles from './pages/Roles/Roles'
+import Permissions from './pages/Permissions/Permissions'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -103,6 +105,16 @@ function App() {
             <Route
               path="/users"
               element={<User />}
+            />
+
+            <Route
+              path="/permissions"
+              element={<Permissions />}
+            />
+
+            <Route
+              path="/roles"
+              element={<Roles />}
             />
 
           </Route>

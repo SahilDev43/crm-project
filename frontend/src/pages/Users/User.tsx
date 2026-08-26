@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react"
-import { Plus, Eye, Pencil, Trash2 } from "lucide-react"
+import {
+    Plus,
+    Eye,
+    Pencil,
+    Trash2,
+    Search,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react"
 
 import { getUsers } from '../../api/users'
 import { getAssetUrl } from '../../api/client'
@@ -8,6 +16,12 @@ import UserForm from './UserForm'
 import UserView from "./UserView"
 import UserEdit from './UserEdit'
 import UserDelete from './UserDelete'
+import type { Company } from '../../types/company'
+import type { Role } from '../../types/role'
+import { getCompanies } from '../../api/companies'
+import { getRoles } from '../../api/roles'
+
+const PAGE_SIZE = 10
 
 function User() {
     const [users, setUsers] = useState<UserType[]>([])
@@ -17,15 +31,43 @@ function User() {
     const [viewUserId, setViewUserId] = useState<number | null>(null)
     const [editUserId, setEditUserId] = useState<number | null>(null)
     const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
+    const [companies, setCompanies] = useState<Company[]>([])
+    const [roles, setRoles] = useState<Role[]>([])
+
+    const [search, setSearch] = useState('')
+    const [debouncedSearch, setDebouncedSearch] = useState('')
+    const [page, setPage] = useState(1)
+    const [total, setTotal] = useState(0)
+    const [totalPages, setTotalPages] = useState(0)
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setDebouncedSearch(search.trim())
+            setPage(1)
+        }, 400)
+
+        return () => clearTimeout(timeout)
+    }, [search])
 
     const loadUsers = async () => {
         try {
             setLoading(true)
             setError('')
 
-            const data = await getUsers()
+            const data = await getUsers({
+                search: debouncedSearch || undefined,
+                page,
+                page_size: PAGE_SIZE,
+            })
 
-            setUsers(data)
+            if (data.items.length === 0 && page > 1 && data.total_pages > 0) {
+                setPage(data.total_pages)
+                return
+            }
+
+            setUsers(data.items)
+            setTotal(data.total)
+            setTotalPages(data.total_pages)
         } catch (error: any) {
             if (error.response?.data?.detail) {
                 setError(error.response.data.detail)
@@ -37,8 +79,33 @@ function User() {
         }
     }
 
+    const loadCompanies = async () => {
+        try {
+            const data = await getCompanies({ page_size: 100 })
+
+            setCompanies(data.items)
+        } catch (error) {
+            // ignore, company name falls back to '-'
+        }
+    }
+
+    const loadRoles = async () => {
+        try {
+            const data = await getRoles()
+
+            setRoles(data)
+        } catch (error) {
+            // ignore, role name falls back to '-'
+        }
+    }
+
     useEffect(() => {
         loadUsers()
+    }, [debouncedSearch, page])
+
+    useEffect(() => {
+        loadCompanies()
+        loadRoles()
     }, [])
 
     return (
@@ -58,7 +125,7 @@ function User() {
 
                 <button
                     type="button" onClick={() => setShowUserForm(true)}
-                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                    className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-700"
                 >
                     <Plus size={17} />
                     Add User
@@ -71,6 +138,21 @@ function User() {
                     {error}
                 </div>
             )}
+
+            <div className="relative max-w-sm">
+                <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                />
+
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Search users..."
+                    className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-red-500"
+                />
+            </div>
 
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
 
@@ -132,13 +214,19 @@ function User() {
                                         colSpan={7}
                                         className="px-6 py-10 text-center text-sm text-slate-500"
                                     >
-                                        No users found.
+                                        {debouncedSearch
+                                            ? `No users match "${debouncedSearch}".`
+                                            : 'No users found.'}
                                     </td>
                                 </tr>
 
                             ) : (
 
-                                users.map((user) => (
+                                users.map((user) => {
+                                    const companyName = companies.find((company) => company.id === user.company_id)?.name ?? '-'
+                                    const roleName = roles.find((role) => role.id === user.role_id)?.name ?? '-'
+
+                                    return (
 
                                     <tr
                                         key={user.id}
@@ -156,7 +244,7 @@ function User() {
                                                         className="h-9 w-9 rounded-full object-cover"
                                                     />
                                                 ) : (
-                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-sm font-semibold text-blue-600">
+                                                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50 text-sm font-semibold text-red-600">
                                                         {user.first_name
                                                             .charAt(0)
                                                             .toUpperCase()}
@@ -186,11 +274,11 @@ function User() {
                                         </td>
 
                                         <td className="px-6 py-4 text-sm text-slate-600">
-                                            {user.company_id ?? '—'}
+                                            {companyName}
                                         </td>
 
                                         <td className="px-6 py-4 text-sm text-slate-600">
-                                            {user.role_id ?? '—'}
+                                            {roleName}
                                         </td>
 
                                         <td className="px-6 py-4">
@@ -244,7 +332,8 @@ function User() {
 
                                     </tr>
 
-                                ))
+                                    )
+                                })
 
                             )}
 
@@ -255,6 +344,53 @@ function User() {
                 </div>
 
             </div>
+
+            {!loading && totalPages > 1 && (
+                <div className="flex items-center justify-between">
+
+                    <p className="text-sm text-slate-500">
+                        Showing{' '}
+                        <span className="font-medium text-slate-700">
+                            {(page - 1) * PAGE_SIZE + 1}
+                        </span>
+                        {'–'}
+                        <span className="font-medium text-slate-700">
+                            {Math.min(page * PAGE_SIZE, total)}
+                        </span>
+                        {' of '}
+                        <span className="font-medium text-slate-700">
+                            {total}
+                        </span>
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setPage((value) => Math.max(1, value - 1))}
+                            disabled={page <= 1}
+                            className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <ChevronLeft size={16} />
+                            Prev
+                        </button>
+
+                        <span className="text-sm text-slate-500">
+                            Page {page} of {totalPages}
+                        </span>
+
+                        <button
+                            type="button"
+                            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                            disabled={page >= totalPages}
+                            className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Next
+                            <ChevronRight size={16} />
+                        </button>
+                    </div>
+
+                </div>
+            )}
 
             {showUserForm && (
                 <UserForm

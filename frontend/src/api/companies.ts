@@ -1,12 +1,21 @@
 import apiClient from "./client";
 
-import type { Company, CompanyCreate, CompanyUpdate, CompanyApiKey, CompanyApiKeyCreate, CompanyApiKeyCreateResponse } from "../types/company"
+import type { Company, CompanyCreate, CompanyUpdate, CompanyApiKey, CompanyApiKeyCreate, CompanyApiKeyCreateResponse, CompanyListResponse } from "../types/company"
 
-export const getCompanies = async (): Promise<Company[]> => {
-    const response = await apiClient.get<Company[]>(
-        '/companies'
+export interface GetCompaniesParams {
+    search?: string
+    page?: number
+    page_size?: number
+}
+
+export const getCompanies = async (
+    params: GetCompaniesParams = {}
+): Promise<CompanyListResponse> => {
+    const response = await apiClient.get<CompanyListResponse>(
+        '/companies',
+        { params }
     )
-    
+
     return response.data
 }
 

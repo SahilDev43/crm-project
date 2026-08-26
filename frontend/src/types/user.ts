@@ -32,3 +32,11 @@ export interface UserUpdate {
   company_id?: number | null
   is_active?: boolean | null
 }
+
+export interface UserListResponse {
+  items: User[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
