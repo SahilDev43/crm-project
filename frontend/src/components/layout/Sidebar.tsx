@@ -1,4 +1,5 @@
-import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut, User, ShieldCheck, KeyRound } from "lucide-react";
+import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut, User, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
+import { useState } from "react"
 
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../../auth/AuthContext"
@@ -45,22 +46,29 @@ const navigation = [
         icon: User,
     },
     {
-        name: 'Permissions',
-        path: '/permissions',
-        icon: KeyRound,
-    },
-    {
-        name: 'Roles',
-        path: '/roles',
+        name: 'Manage Permissions',
         icon: ShieldCheck,
-    }
+        children: [
+            {
+                name: 'Permissions',
+                path: '/permissions',
+                icon: KeyRound,
+            },
+            {
+                name: 'Roles',
+                path: '/roles',
+                icon: ShieldCheck,
+            },
+        ],
+    },
 ]
 
 function Sidebar() {
     const { logout } = useAuth()
+    const [isPermissionsOpen, setIsPermissionsOpen] = useState(false)
 
     return (
-        <aside className="flex h-screen w-64 flex-col border-r border-slate-200 bg-white">
+        <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
 
             <div className="flex h-16 items-center border-b border-slate-200 px-6">
                 <h1 className="text-xl font-bold text-slate-900">
@@ -71,6 +79,57 @@ function Sidebar() {
             <nav className="flex-1 space-y-1 p-4">
                 {navigation.map((item) => {
                     const Icon = item.icon
+
+                    if (item.children) {
+                        return (
+                            <div key={item.name}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPermissionsOpen((isOpen) => !isOpen)}
+                                    aria-expanded={isPermissionsOpen}
+                                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                >
+                                    <Icon size={18} />
+
+                                    <span className="flex-1">
+                                        {item.name}
+                                    </span>
+
+                                    <ChevronDown
+                                        size={16}
+                                        className={`transition-transform ${isPermissionsOpen ? 'rotate-180' : ''}`}
+                                    />
+                                </button>
+
+                                {isPermissionsOpen && (
+                                    <div className="ml-4 space-y-1 border-l border-slate-200 pl-3">
+                                        {item.children.map((child) => {
+                                            const ChildIcon = child.icon
+
+                                            return (
+                                                <NavLink
+                                                    key={child.path}
+                                                    to={child.path}
+                                                    className={({ isActive }) =>
+                                                        `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${isActive
+                                                            ? 'bg-red-50 text-red-600'
+                                                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                                        }`
+                                                    }
+                                                >
+                                                    <ChildIcon size={16} />
+
+                                                    <span>
+                                                        {child.name}
+                                                    </span>
+                                                </NavLink>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    }
 
                     return (
                         <NavLink

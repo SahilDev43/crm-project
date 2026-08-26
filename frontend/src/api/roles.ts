@@ -1,5 +1,6 @@
 import apiClient from './client'
 import type { Role, RoleCreate, RoleUpdate } from '../types/role'
+import type { Permission } from '../types/permission'
 
 export const getRoles = async (): Promise<Role[]> => {
   const response = await apiClient.get<Role[]>('/roles/')
@@ -42,4 +43,32 @@ export const deleteRole = async (
   roleId: number
 ): Promise<void> => {
   await apiClient.delete(`/roles/${roleId}`)
+}
+
+export const getRolePermissions = async (
+  roleId: number
+): Promise<Permission[]> => {
+  const response = await apiClient.get<Permission[]>(
+  `/roles/${roleId}/permissions`
+  )
+
+  return response.data
+}
+
+export const assignRolePermission = async (
+  roleId: number,
+  permissionId: number
+): Promise<void> => {
+  await apiClient.post(
+    `roles/${roleId}/permissions/${permissionId}`
+  )
+}
+
+export const removeRolePermission = async (
+  roleId: number,
+  permissionId: number
+): Promise<void> => {
+  await apiClient.delete(
+    `/roles/${roleId}/permissions/${permissionId}`
+  )
 }

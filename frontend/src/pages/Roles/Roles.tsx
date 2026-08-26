@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Eye, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Eye, Pencil, Trash2, ShieldCheck } from 'lucide-react'
 
 import {
     getRoles,
@@ -11,6 +11,7 @@ import RoleForm from './RoleForm'
 import RoleView from './RoleView'
 import RoleEdit from './RoleEdit'
 import RoleDelete from './RoleDelete'
+import RolePermissions from './RolePermissions'
 
 function Roles() {
     const [roles, setRoles] = useState<Role[]>([])
@@ -25,6 +26,8 @@ function Roles() {
     const [deleteRoleId, setDeleteRoleId] =
         useState<number | null>(null)
     const [deleting, setDeleting] = useState(false)
+    const [permissionRoleId, setPermissionRoleId] =
+        useState<number | null>(null)
 
     const loadRoles = async () => {
         try {
@@ -191,6 +194,15 @@ function Roles() {
 
                                                 <button
                                                     type="button"
+                                                    onClick={() => setPermissionRoleId(role.id)}
+                                                    title="Manage Permissions"
+                                                    className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                                                >
+                                                    <ShieldCheck size={16} />
+                                                </button>
+
+                                                <button
+                                                    type="button"
                                                     onClick={() =>
                                                         setDeleteRoleId(role.id)
                                                     }
@@ -246,18 +258,30 @@ function Roles() {
 
             {deleteRoleId !== null && (
                 <RoleDelete
-                roleName={
-                    roles.find(
-                        (role) => role.id === deleteRoleId
-                    )?. name ?? 'this role'
-                }
-                loading={deleting}
-                error={error}
-                onClose={() => {
-                    setDeleteRoleId(null)
-                    setError('')
-                }}
-                onConfirm={handleDelete}
+                    roleName={
+                        roles.find(
+                            (role) => role.id === deleteRoleId
+                        )?.name ?? 'this role'
+                    }
+                    loading={deleting}
+                    error={error}
+                    onClose={() => {
+                        setDeleteRoleId(null)
+                        setError('')
+                    }}
+                    onConfirm={handleDelete}
+                />
+            )}
+
+            {permissionRoleId !== null && (
+                <RolePermissions
+                    roleId={permissionRoleId}
+                    roleName={
+                        roles.find(
+                            (role) => role.id === permissionRoleId
+                        )?.name ?? 'Role'
+                    }
+                    onClose={() => setPermissionRoleId(null)}
                 />
             )}
 
