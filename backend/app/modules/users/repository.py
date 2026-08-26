@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import cast, func, select, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.users.model import User
@@ -27,9 +27,53 @@ class UserRepository(BaseRepository):
         )
         return result.scalar_one_or_none()
 
-    async def get_all(self) -> list[User]:
-        result = await self.db.execute(select(User).where(User.is_deleted.is_(False)).order_by(User.id))
-        return list(result.scalars().all())
+    async def get_all(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[User], int]:
+
+        query = (
+            select(User)
+            .outerjoin(Role, User.role_id == Role.id)
+            .where(User.is_deleted.is_(False))
+        )
+
+        if search:
+            search_value = f"%{search.strip()}%"
+
+            query = query.where(
+                User.first_name.ilike(search_value)
+                | User.last_name.ilike(search_value)
+                | User.email.ilike(search_value)
+                | User.phone.ilike(search_value)
+                | Role.name.ilike(search_value)
+                | cast(User.id, String).ilike(search_value)
+            )
+
+        count_query = select(
+            func.count()
+        ).select_from(query.subquery())
+
+        count_result = await self.db.execute(count_query)
+
+        total = count_result.scalar_one()
+
+        offset = (page - 1) * page_size
+
+        query = (
+            query
+            .order_by(User.id)
+            .offset(offset)
+            .limit(page_size)
+        )
+
+        result = await self.db.execute(query)
+
+        items = list(result.scalars().all())
+
+        return items, total
 
     async def create(self, user: User) -> User:
         self.db.add(user)

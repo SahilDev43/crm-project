@@ -17,3 +17,10 @@ class PermissionResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class PermissionListResponse(BaseModel):
+    items: list[PermissionResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

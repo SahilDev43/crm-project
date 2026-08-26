@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.modules.permissions.dependencies import (
     get_permission_service,
     require_permission,
 )
-from app.modules.permissions.schema import PermissionCreate, PermissionResponse, PermissionUpdate
+from app.modules.permissions.schema import (
+    PermissionCreate,
+    PermissionListResponse,
+    PermissionResponse,
+    PermissionUpdate,
+)
 from app.modules.permissions.service import PermissionService
 
 router = APIRouter(
@@ -61,17 +66,34 @@ async def get_permission(
 
 @router.get(
     "/",
-    response_model=list[PermissionResponse],
+    response_model=PermissionListResponse,
     dependencies=[
         Depends(require_permission("permissions.view"))
     ]
 )
 async def list_permissions(
+    search: str | None = Query(
+        default=None,
+        min_length=1,
+    ),
+    page: int = Query(
+        default=1,
+        ge=1,
+    ),
+    page_size: int = Query(
+        default=20,
+        ge=1,
+        le=100,
+    ),
     service: PermissionService = Depends(
         get_permission_service
     )
 ):
-    return await service.get_permissions()
+    return await service.get_permissions(
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
 
 @router.delete(
     "/{permission_id}",

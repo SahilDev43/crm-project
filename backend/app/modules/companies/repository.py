@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from app.db.base_repository import BaseRepository
 from app.modules.companies.model import Company
 
@@ -24,13 +24,47 @@ class CompanyRepository(BaseRepository):
 
         return result.scalar_one_or_none()
 
-    async def get_all(self) -> list[Company]:
+    async def get_all(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Company], int]:
 
-        result = await self.db.execute(select(Company).where(
+        query = select(Company).where(
             Company.is_deleted.is_(False)
-        ))
+        )
 
-        return list(result.scalars().all())
+        if search:
+            search_value = f"%{search.strip()}%"
+
+            query = query.where(
+                Company.name.ilike(search_value)
+                | Company.gst_number.ilike(search_value)
+            )
+
+        count_query = select(
+            func.count()
+        ).select_from(query.subquery())
+
+        count_result = await self.db.execute(count_query)
+
+        total = count_result.scalar_one()
+
+        offset = (page - 1) * page_size
+
+        query = (
+            query
+            .order_by(Company.id)
+            .offset(offset)
+            .limit(page_size)
+        )
+
+        result = await self.db.execute(query)
+
+        items = list(result.scalars().all())
+
+        return items, total
 
     async def create(self, comapny: Company) -> Company:
 

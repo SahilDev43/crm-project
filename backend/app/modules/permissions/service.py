@@ -1,3 +1,5 @@
+import math
+
 from app.modules.permissions.repository import PermissionRepository
 from app.modules.users.repository import UserRepository
 from app.db.unit_of_work import UnitOfWork
@@ -69,9 +71,32 @@ class PermissionService:
 
         return permission
 
-    async def get_permissions(self) -> list[Permission]:
+    async def get_permissions(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ):
 
-        return await self.permission_repo.get_all()
+        items, total = await self.permission_repo.get_all(
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+
+        total_pages = (
+            math.ceil(total / page_size)
+            if total
+            else 0
+        )
+
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
 
     async def update_permission(
         self,

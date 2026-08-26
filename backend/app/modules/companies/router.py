@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, status, File, UploadFile
+from fastapi import APIRouter, Depends, Query, status, File, UploadFile
 
 from app.modules.companies.dependencies import get_company_service
 from app.modules.companies.schema import (
     CompanyCreate,
     CompanyUpdate,
     CompanyResponse,
+    CompanyListResponse,
 )
 from app.modules.companies.service import CompanyService
 from app.modules.permissions.dependencies import require_permission
@@ -39,16 +40,33 @@ async def create_company(
 
 @router.get(
     "/",
-    response_model=list[CompanyResponse],
+    response_model=CompanyListResponse,
     dependencies=[
         Depends(require_permission("companies.view"))
     ]
 )
 
 async def list_companies(
+    search: str | None = Query(
+        default=None,
+        min_length=1,
+    ),
+    page: int = Query(
+        default=1,
+        ge=1,
+    ),
+    page_size: int = Query(
+        default=20,
+        ge=1,
+        le=100,
+    ),
     service: CompanyService = Depends(get_company_service)
 ):
-    return await service.get_companies()
+    return await service.get_companies(
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
 
 @router.get(
     "/{company_id}",

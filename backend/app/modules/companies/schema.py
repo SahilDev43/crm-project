@@ -58,3 +58,10 @@ class CompanyResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class CompanyListResponse(BaseModel):
+    items: list[CompanyResponse]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

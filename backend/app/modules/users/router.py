@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, status, File, UploadFile
+from fastapi import APIRouter, Depends, Query, status, File, UploadFile
 
 from app.modules.users.dependencies import get_user_service
 from app.modules.users.schema import(
     UserCreate,
+    UserListResponse,
     UserResponse,
     UserUpdate
 )
@@ -37,11 +38,28 @@ async def update_user(
         data=data,
     )
 
-@router.get("/", response_model=list[UserResponse], dependencies=[Depends(require_permission("users.view"))])
+@router.get("/", response_model=UserListResponse, dependencies=[Depends(require_permission("users.view"))])
 async def list_users(
+    search: str | None = Query(
+        default=None,
+        min_length=1,
+    ),
+    page: int = Query(
+        default=1,
+        ge=1,
+    ),
+    page_size: int = Query(
+        default=20,
+        ge=1,
+        le=100,
+    ),
     service: UserService = Depends(get_user_service)
 ):
-    return await service.get_users()
+    return await service.get_users(
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
 
 @router.get("/{user_id}", response_model=UserResponse, dependencies=[Depends(require_permission("users.view"))])
 async def get_user(user_id: int, service: UserService = Depends(get_user_service)):

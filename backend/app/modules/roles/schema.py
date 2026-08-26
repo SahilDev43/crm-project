@@ -6,7 +6,7 @@ class RoleCreate(BaseModel):
 
 class RoleUpdate(BaseModel):
     name: str | None = None
-    descriptionL: str | None = None
+    description: str | None = None
 
 class RoleResponse(BaseModel):
     id: int

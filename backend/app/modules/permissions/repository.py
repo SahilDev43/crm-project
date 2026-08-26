@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.db.base_repository import BaseRepository
 from app.modules.permissions.model import Permission
@@ -41,13 +41,45 @@ class PermissionRepository(BaseRepository):
 
         return permission
 
-    async def get_all(self) -> list[Permission]:
+    async def get_all(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[Permission], int]:
 
-        result = await self.db.execute(
-            select(Permission).order_by(Permission.id)
+        query = select(Permission)
+
+        if search:
+            search_value = f"%{search.strip()}%"
+
+            query = query.where(
+                Permission.name.ilike(search_value)
+                | Permission.description.ilike(search_value)
+            )
+
+        count_query = select(
+            func.count()
+        ).select_from(query.subquery())
+
+        count_result = await self.db.execute(count_query)
+
+        total = count_result.scalar_one()
+
+        offset = (page - 1) * page_size
+
+        query = (
+            query
+            .order_by(Permission.id)
+            .offset(offset)
+            .limit(page_size)
         )
 
-        return list(result.scalars().all())
+        result = await self.db.execute(query)
+
+        items = list(result.scalars().all())
+
+        return items, total
 
     async def delete(
         self,

@@ -1,3 +1,5 @@
+import math
+
 from app.common.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundError,
@@ -70,8 +72,32 @@ class UserService:
 
         return user
 
-    async def get_users(self):
-        return await self.repo.get_all()
+    async def get_users(
+        self,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ):
+
+        items, total = await self.repo.get_all(
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+
+        total_pages = (
+            math.ceil(total / page_size)
+            if total
+            else 0
+        )
+
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages,
+        }
 
     async def get_user(self, user_id: int):
 
