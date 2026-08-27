@@ -15,6 +15,7 @@ import Roles from './pages/Roles/Roles'
 import Permissions from './pages/Permissions/Permissions'
 import Leads from './pages/Leads/Leads'
 import Deals from './pages/Deals/Deals'
+import Invoices from './pages/Invoices/Invoices'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -91,7 +92,7 @@ function App() {
 
             <Route
               path="/invoices"
-              element={<ComingSoon />}
+              element={<Invoices />}
             />
 
             <Route
