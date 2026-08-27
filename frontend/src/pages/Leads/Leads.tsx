@@ -1,31 +1,42 @@
 import { useEffect, useState } from 'react'
 import {
-  Plus,
   Eye,
-  Pencil,
   Trash2,
+  Handshake,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 
-import { getLeads } from '../../api/leads'
+import { getLeads, getLeadStatuses } from '../../api/leads'
 import { getCompanies } from '../../api/companies'
 
-import type { Lead } from '../../types/lead'
+import type { Lead, LeadStatus } from '../../types/lead'
 import type { Company } from '../../types/company'
+import DealFromLeadForm from './DealFromLeadForm'
+import LeadDelete from './LeadDelete'
+import LeadView from './LeadView'
 
 function Leads() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
+  const [statuses, setStatuses] = useState<LeadStatus[]>([])
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [companyId, setCompanyId] = useState('')
+  const [statusId, setStatusId] = useState('')
+  const [leadType, setLeadType] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
-  const [showCreate, setShowCreate] = useState(false)
-  const [viewLeadId, setViewLeadId] =
-    useState<number | null>(null)
-  const [editLeadId, setEditLeadId] =
-    useState<number | null>(null)
-  const [deleteLeadId, setDeleteLeadId] =
-    useState<number | null>(null)
+  const [viewLead, setViewLead] = useState<Lead | null>(null)
+  const [dealLead, setDealLead] = useState<Lead | null>(null)
+  const [deleteLead, setDeleteLead] = useState<Lead | null>(null)
+  const [successMessage, setSuccessMessage] = useState('')
 
   const loadLeads = async () => {
     try {
@@ -34,12 +45,26 @@ function Leads() {
 
       const [leadData, companyData] =
         await Promise.all([
-          getLeads(),
-          getCompanies(),
+          getLeads({
+            company_id: companyId ? Number(companyId) : undefined,
+            status_id: statusId ? Number(statusId) : undefined,
+            lead_type: leadType || undefined,
+            search: debouncedSearch || undefined,
+            page,
+            page_size: 10,
+          }),
+          getCompanies({ page_size: 100 }),
         ])
 
-      setLeads(leadData)
+      if (leadData.items.length === 0 && page > 1 && leadData.total_pages > 0) {
+        setPage(leadData.total_pages)
+        return
+      }
+
+      setLeads(leadData.items)
       setCompanies(companyData.items)
+      setTotal(leadData.total)
+      setTotalPages(leadData.total_pages)
     } catch (error: any) {
       if (error.response?.data?.detail) {
         setError(error.response.data.detail)
@@ -52,7 +77,28 @@ function Leads() {
   }
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search.trim())
+      setPage(1)
+    }, 400)
+
+    return () => clearTimeout(timeout)
+  }, [search])
+
+  useEffect(() => {
     loadLeads()
+  }, [debouncedSearch, companyId, statusId, leadType, page])
+
+  useEffect(() => {
+    const loadStatuses = async () => {
+      try {
+        setStatuses(await getLeadStatuses())
+      } catch {
+        // The list can still be filtered by company, type, and search.
+      }
+    }
+
+    loadStatuses()
   }, [])
 
   const getCompanyName = (
@@ -90,15 +136,6 @@ function Leads() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <Plus size={17} />
-          Add Lead
-        </button>
-
       </div>
 
       {error && (
@@ -106,6 +143,39 @@ function Leads() {
           {error}
         </div>
       )}
+
+      {successMessage && (
+        <div className="mt-5 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {successMessage}
+        </div>
+      )}
+
+      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <label className="relative block">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search name, email, phone..."
+            className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-blue-500"
+          />
+        </label>
+        <select value={companyId} onChange={(event) => { setCompanyId(event.target.value); setPage(1) }} className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+          <option value="">All companies</option>
+          {companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}
+        </select>
+        <select value={statusId} onChange={(event) => { setStatusId(event.target.value); setPage(1) }} className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500">
+          <option value="">All statuses</option>
+          {statuses.map((status) => <option key={status.id} value={status.id}>{status.name}</option>)}
+        </select>
+        <input
+          value={leadType}
+          onChange={(event) => { setLeadType(event.target.value); setPage(1) }}
+          placeholder="Filter by lead type"
+          className="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+        />
+      </div>
 
       <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white">
 
@@ -210,32 +280,36 @@ function Leads() {
 
                       <div className="flex justify-end gap-1">
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setViewLeadId(lead.id)
-                          }
-                          title="View"
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                        >
-                          <Eye size={16} />
-                        </button>
+                        {!lead.is_converted && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setViewLead(lead)
+                              }
+                              title="View"
+                              className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            >
+                              <Eye size={16} />
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDealLead(lead)
+                              }
+                              title="Add to Deal"
+                              className="rounded-lg p-2 text-blue-600 hover:bg-blue-50"
+                            >
+                              <Handshake size={16} />
+                            </button>
+                          </>
+                        )}
 
                         <button
                           type="button"
                           onClick={() =>
-                            setEditLeadId(lead.id)
-                          }
-                          title="Edit"
-                          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                        >
-                          <Pencil size={16} />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDeleteLeadId(lead.id)
+                            setDeleteLead(lead)
                           }
                           title="Delete"
                           className="rounded-lg p-2 text-red-500 hover:bg-red-50"
@@ -259,7 +333,57 @@ function Leads() {
 
       </div>
 
-      {/* Lead popups will be connected next */}
+      {!loading && total > 0 && (
+        <div className="mt-4 flex items-center justify-between gap-4 text-sm text-slate-600">
+          <span>{total} lead{total === 1 ? '' : 's'} found</span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setPage((currentPage) => currentPage - 1)} disabled={page === 1} className="rounded-lg border border-slate-300 p-2 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"><ChevronLeft size={16} /></button>
+            <span>Page {page} of {totalPages}</span>
+            <button type="button" onClick={() => setPage((currentPage) => currentPage + 1)} disabled={page >= totalPages} className="rounded-lg border border-slate-300 p-2 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"><ChevronRight size={16} /></button>
+          </div>
+        </div>
+      )}
+
+      {viewLead && (
+        <LeadView
+          lead={viewLead}
+          company={companies.find((company) => company.id === viewLead.company_id)}
+          onClose={() => setViewLead(null)}
+        />
+      )}
+
+      {dealLead && (
+        <DealFromLeadForm
+          lead={dealLead}
+          companyName={getCompanyName(dealLead.company_id)}
+          onClose={() => setDealLead(null)}
+          onSuccess={() => {
+            setLeads((currentLeads) =>
+              currentLeads.map((lead) =>
+                lead.id === dealLead.id
+                  ? { ...lead, is_converted: true }
+                  : lead
+              )
+            )
+            setDealLead(null)
+            setSuccessMessage('Deal created successfully.')
+            loadLeads()
+          }}
+        />
+      )}
+
+      {deleteLead && (
+        <LeadDelete
+          leadId={deleteLead.id}
+          leadName={getLeadName(deleteLead)}
+          onClose={() => setDeleteLead(null)}
+          onSuccess={() => {
+            setDeleteLead(null)
+            setSuccessMessage('Lead deleted successfully.')
+            loadLeads()
+          }}
+        />
+      )}
 
     </div>
   )

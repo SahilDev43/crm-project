@@ -14,6 +14,7 @@ import User from './pages/Users/User'
 import Roles from './pages/Roles/Roles'
 import Permissions from './pages/Permissions/Permissions'
 import Leads from './pages/Leads/Leads'
+import Deals from './pages/Deals/Deals'
 
 function Dashboard() {
   const { user } = useAuth()
@@ -85,7 +86,7 @@ function App() {
 
             <Route
               path="/deals"
-              element={<ComingSoon />}
+              element={<Deals />}
             />
 
             <Route

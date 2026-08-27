@@ -2,10 +2,18 @@ import apiClient from './client'
 
 import type {
   Lead,
-  LeadCreate,
-  LeadUpdate,
+  LeadListResponse,
   LeadStatus,
 } from '../types/lead'
+
+export interface GetLeadsParams {
+  company_id?: number
+  status_id?: number
+  lead_type?: string
+  search?: string
+  page?: number
+  page_size?: number
+}
 
 export const getLeadStatuses = async (): Promise<LeadStatus[]> => {
   const response = await apiClient.get<LeadStatus[]>(
@@ -15,9 +23,12 @@ export const getLeadStatuses = async (): Promise<LeadStatus[]> => {
   return response.data
 }
 
-export const getLeads = async (): Promise<Lead[]> => {
-  const response = await apiClient.get<Lead[]>(
-    '/leads'
+export const getLeads = async (
+  params: GetLeadsParams = {}
+): Promise<LeadListResponse> => {
+  const response = await apiClient.get<LeadListResponse>(
+    '/leads',
+    { params }
   )
 
   return response.data
@@ -28,29 +39,6 @@ export const getLead = async (
 ): Promise<Lead> => {
   const response = await apiClient.get<Lead>(
     `/leads/${leadId}`
-  )
-
-  return response.data
-}
-
-export const createLead = async (
-  data: LeadCreate
-): Promise<Lead> => {
-  const response = await apiClient.post<Lead>(
-    '/leads',
-    data
-  )
-
-  return response.data
-}
-
-export const updateLead = async (
-  leadId: number,
-  data: LeadUpdate
-): Promise<Lead> => {
-  const response = await apiClient.patch<Lead>(
-    `/leads/${leadId}`,
-    data
   )
 
   return response.data
