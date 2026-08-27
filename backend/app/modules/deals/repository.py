@@ -66,7 +66,7 @@ class DealRepository(BaseRepository):
             )
 
         if search:
-            search_term = f"%{search.strip()}"
+            search_term = f"%{search.strip()}%"
 
             search_filter = or_(
                 Deal.title.ilike(search_term),
