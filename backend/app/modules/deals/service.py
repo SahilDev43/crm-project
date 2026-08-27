@@ -9,6 +9,8 @@ from app.common.exceptions import (
 )
 
 from app.modules.deals.model import Deal
+from app.modules.feeds.model import ActivityFeed
+from app.modules.feeds.repository import ActivityFeedRepository
 from app.modules.deals.repository import DealRepository
 from app.modules.deals.schema import DealCreate, DealUpdate
 
@@ -27,6 +29,7 @@ class DealService:
     def __init__(
         self,
         repo: DealRepository,
+        feed_repo: ActivityFeedRepository,
         uow: UnitOfWork,
         company_repo: CompanyRepository,
         lead_repo: LeadRepository,
@@ -36,6 +39,7 @@ class DealService:
         user_repo: UserRepository
     ):
         self.repo = repo
+        self.feed_repo = feed_repo
         self.uow = uow
         self.company_repo = company_repo
         self.lead_repo = lead_repo
@@ -89,6 +93,8 @@ class DealService:
         if not deal_status:
             raise DealStatusNotFoundError()
 
+        lead = None
+
         # Validate lead
         if data.lead_id is not None:
 
@@ -130,10 +136,35 @@ class DealService:
 
             await self.repo.create(deal)
             await self.repo.flush()
+            if lead is not None:
+                lead.is_converted = True
+            await self._add_feed_entry(
+                deal_id=deal.id,
+                user_id=current_user_id,
+                event_type="created",
+                content="created this deal",
+            )
 
         await self.repo.refresh(deal)
 
         return deal
+
+    async def _add_feed_entry(
+        self,
+        deal_id: int,
+        user_id: int | None,
+        event_type: str,
+        content: str,
+        metadata_json: dict | None = None,
+    ) -> None:
+        await self.feed_repo.create(ActivityFeed(
+            subject_type="deal",
+            subject_id=deal_id,
+            user_id=user_id,
+            event_type=event_type,
+            content=content,
+            metadata_json=metadata_json,
+        ))
 
     async def get_deals(
         self,
@@ -168,6 +199,57 @@ class DealService:
             "total_pages": total_pages,
         }
 
+    async def get_deal_statuses(self):
+        return await self.deal_status_repo.get_all()
+
+    async def get_project_types(self):
+        return await self.project_type_repo.get_all()
+
+    async def get_platforms(self):
+        return await self.platform_repo.get_all()
+
+    async def get_feed(self, deal_id: int) -> list[dict]:
+        deal = await self.repo.get_by_id(deal_id)
+        if not deal:
+            raise DealNotFoundError()
+
+        entries = await self.feed_repo.get_for_subject("deal", deal_id)
+        return [
+            {
+                "id": entry.id,
+                "deal_id": entry.subject_id,
+                "user_id": entry.user_id,
+                "actor_name": (
+                    f"{entry.actor.first_name} {entry.actor.last_name}"
+                    if entry.actor else None
+                ),
+                "event_type": entry.event_type,
+                "content": entry.content,
+                "metadata_json": entry.metadata_json,
+                "created_at": entry.created_at,
+                "updated_at": entry.updated_at,
+            }
+            for entry in entries
+        ]
+
+    async def add_comment(
+        self,
+        deal_id: int,
+        content: str,
+        current_user_id: int,
+    ) -> None:
+        deal = await self.repo.get_by_id(deal_id)
+        if not deal:
+            raise DealNotFoundError()
+
+        async with self.uow:
+            await self._add_feed_entry(
+                deal_id=deal_id,
+                user_id=current_user_id,
+                event_type="comment",
+                content=content.strip(),
+            )
+
     async def get_deal(
         self,
         deal_id: int,
@@ -199,6 +281,11 @@ class DealService:
         update_data = data.model_dump(
             exclude_unset=True
         )
+        # Assignment and status changes are intentionally handled by their
+        # dedicated endpoints so their activity is recorded accurately.
+        update_data.pop("assigned_to", None)
+        update_data.pop("deal_status_id", None)
+        update_data.pop("accepted_by", None)
 
         # Validate project type
         if "project_type_id" in update_data:
@@ -268,6 +355,14 @@ class DealService:
         async with self.uow:
 
             await self.repo.flush()
+            if update_data:
+                await self._add_feed_entry(
+                    deal_id=deal.id,
+                    user_id=current_user_id,
+                    event_type="updated",
+                    content="updated the deal",
+                    metadata_json={"fields": sorted(update_data.keys())},
+                )
 
         await self.repo.refresh(deal)
 
@@ -293,11 +388,27 @@ class DealService:
         if not user.is_active:
             raise UserNotFoundError()
 
+        previous_assignee = deal.assigned_to
         deal.assigned_to = assigned_to
         deal.updated_by = current_user_id
 
+        is_acceptance = previous_assignee is None and assigned_to == current_user_id
+        if is_acceptance:
+            deal.accepted_by = current_user_id
+
         async with self.uow:
             await self.repo.flush()
+            await self._add_feed_entry(
+                deal_id=deal.id,
+                user_id=current_user_id,
+                event_type="accepted" if is_acceptance else "assigned",
+                content=(
+                    "accepted this deal"
+                    if is_acceptance
+                    else f"assigned this deal to {user.first_name} {user.last_name}"
+                ),
+                metadata_json={"assigned_to": assigned_to},
+            )
 
         await self.repo.refresh(deal)
 
@@ -315,6 +426,11 @@ class DealService:
         if not deal:
             raise DealNotFoundError()
 
+        old_status = await self.deal_status_repo.get_by_id(
+            deal.deal_status_id
+        )
+        old_status_id = deal.deal_status_id
+
         deal_status = await self.deal_status_repo.get_by_id(
             deal_status_id
         )
@@ -327,6 +443,19 @@ class DealService:
 
         async with self.uow:
             await self.repo.flush()
+            await self._add_feed_entry(
+                deal_id=deal.id,
+                user_id=current_user_id,
+                event_type="status_changed",
+                content=(
+                    f"changed status from {old_status.name if old_status else 'Unknown'} "
+                    f"to {deal_status.name}"
+                ),
+                metadata_json={
+                    "old_status_id": old_status_id,
+                    "new_status_id": deal_status_id,
+                },
+            )
 
         await self.repo.refresh(deal)
 

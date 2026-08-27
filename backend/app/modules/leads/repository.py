@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.db.base_repository import BaseRepository
@@ -27,7 +27,38 @@ class LeadRepository(BaseRepository):
 
     async def get_all(
         self,
-    ) -> list[Lead]:
+        company_id: int | None = None,
+        status_id: int | None = None,
+        lead_type: str | None = None,
+        search: str | None = None,
+        page: int = 1,
+        page_size: int = 10,
+    ) -> tuple[list[Lead], int]:
+        filters = [Lead.is_deleted.is_(False)]
+
+        if company_id is not None:
+            filters.append(Lead.company_id == company_id)
+
+        if status_id is not None:
+            filters.append(Lead.status_id == status_id)
+
+        if lead_type:
+            filters.append(Lead.lead_type.ilike(f"%{lead_type}%"))
+
+        if search:
+            search_term = f"%{search}%"
+            filters.append(or_(
+                Lead.first_name.ilike(search_term),
+                Lead.client_company_name.ilike(search_term),
+                Lead.email.ilike(search_term),
+                Lead.phone.ilike(search_term),
+                Lead.external_lead_id.ilike(search_term),
+            ))
+
+        total_result = await self.db.execute(
+            select(func.count()).select_from(Lead).where(*filters)
+        )
+        total = total_result.scalar_one()
 
         result = await self.db.execute(
             select(Lead)
@@ -35,13 +66,13 @@ class LeadRepository(BaseRepository):
                 selectinload(Lead.status),
                 selectinload(Lead.company),
             )
-            .where(
-                Lead.is_deleted.is_(False)
-            )
+            .where(*filters)
             .order_by(Lead.id.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
         )
 
-        return list(result.scalars().all())
+        return list(result.scalars().all()), total
 
     async def get_by_external_id(
         self,
@@ -54,20 +85,6 @@ class LeadRepository(BaseRepository):
                 Lead.company_id == company_id,
                 Lead.external_lead_id == external_lead_id,
                 Lead.is_deleted.is_(False),
-            )
-        )
-
-        return result.scalar_one_or_none()
-
-    async def get_status_by_id(
-        self,
-        status_id: int,
-    ) -> LeadStatus | None:
-
-        result = await self.db.execute(
-            select(LeadStatus).where(
-                LeadStatus.id == status_id,
-                LeadStatus.is_active.is_(True),
             )
         )
 

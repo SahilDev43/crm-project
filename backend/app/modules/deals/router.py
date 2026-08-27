@@ -7,7 +7,11 @@ from app.modules.deals.schema import (
     DealUpdate,
     DealResponse,
     DealAssign,
-    DealStatusUpdate
+    DealStatusUpdate,
+    DealStatusResponse,
+    DealMasterDataResponse,
+    DealCommentCreate,
+    DealFeedResponse,
 )
 from app.modules.deals.service import DealService
 from app.modules.deals.schema import DealListResponse
@@ -89,6 +93,56 @@ async def get_deals(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get(
+    "/statuses",
+    response_model=list[DealStatusResponse],
+    dependencies=[
+        Depends(require_permission("deals.view"))
+    ],
+)
+async def get_deal_statuses(
+    service: DealService = Depends(get_deal_service),
+):
+    return await service.get_deal_statuses()
+
+
+@router.get("/project-types", response_model=list[DealMasterDataResponse], dependencies=[Depends(require_permission("deals.view"))])
+async def get_project_types(service: DealService = Depends(get_deal_service)):
+    return await service.get_project_types()
+
+
+@router.get("/platforms", response_model=list[DealMasterDataResponse], dependencies=[Depends(require_permission("deals.view"))])
+async def get_platforms(service: DealService = Depends(get_deal_service)):
+    return await service.get_platforms()
+
+
+@router.get(
+    "/{deal_id}/feed",
+    response_model=list[DealFeedResponse],
+    dependencies=[Depends(require_permission("deals.view"))],
+)
+async def get_deal_feed(
+    deal_id: int,
+    service: DealService = Depends(get_deal_service),
+):
+    return await service.get_feed(deal_id)
+
+
+@router.post(
+    "/{deal_id}/comments",
+    response_model=DealResponse,
+    dependencies=[Depends(require_permission("deals.update"))],
+)
+async def add_deal_comment(
+    deal_id: int,
+    data: DealCommentCreate,
+    service: DealService = Depends(get_deal_service),
+    current_user=Depends(get_current_user),
+):
+    await service.add_comment(deal_id, data.content, current_user.id)
+    return await service.get_deal(deal_id)
 
 @router.patch(
     "/{deal_id}/assign",

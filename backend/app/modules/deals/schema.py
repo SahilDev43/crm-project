@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DealBase(BaseModel):
@@ -100,3 +102,35 @@ class DealAssign(BaseModel):
 
 class DealStatusUpdate(BaseModel):
     deal_status_id: int
+
+
+class DealStatusResponse(BaseModel):
+    id: int
+    name: str
+    code: str
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DealMasterDataResponse(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DealCommentCreate(BaseModel):
+    content: str = Field(min_length=1, max_length=5000)
+
+
+class DealFeedResponse(BaseModel):
+    id: int
+    deal_id: int
+    user_id: int | None
+    actor_name: str | None
+    event_type: str
+    content: str
+    metadata_json: dict[str, Any] | None
+    created_at: datetime
+    updated_at: datetime

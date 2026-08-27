@@ -8,6 +8,7 @@ from app.modules.project_types.model import ProjectType
 from app.modules.deal_platforms.model import DealPlatform
 from app.modules.deal_statuses.model import DealStatus
 from app.modules.deals.model import Deal
+from app.modules.feeds.model import ActivityFeed
 from app.modules.teams.model import Team
 from app.modules.teams.member_model import TeamMember
 from app.modules.attendance.model import Attendance
@@ -22,4 +23,4 @@ from app.modules.invoices.model import Invoice
 from app.modules.invoices.item_model import InvoiceItem
 from app.modules.invoices.payment_model import InvoicePayment
 
-__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "Team", "TeamMember", "Attendance", "AttendanceSession", "SalaryComponent", "SalaryStructureComponent", "SalaryStructure", "EmployeeSalary", "Payroll", "PayrollItem", "Invoice", "InvoiceItem", "InvoicePayment"]
+__all__ = ["User", "Role", "Permission", "RolePermission", "Company", "CompanyApiKey", "ProjectType", "DealPlatform", "DealStatus", "Deal", "ActivityFeed", "Team", "TeamMember", "Attendance", "AttendanceSession", "SalaryComponent", "SalaryStructureComponent", "SalaryStructure", "EmployeeSalary", "Payroll", "PayrollItem", "Invoice", "InvoiceItem", "InvoicePayment"]

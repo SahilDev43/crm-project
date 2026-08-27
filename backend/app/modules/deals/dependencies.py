@@ -6,6 +6,7 @@ from app.db.dependencies import get_uow
 from app.db.unit_of_work import UnitOfWork
 
 from app.modules.deals.repository import DealRepository
+from app.modules.feeds.repository import ActivityFeedRepository
 from app.modules.deals.service import DealService
 
 from app.modules.companies.repository import CompanyRepository
@@ -24,6 +25,12 @@ def get_deal_repository(
     db: AsyncSession = Depends(get_db),
 ) -> DealRepository:
     return DealRepository(db)
+
+
+def get_activity_feed_repository(
+    db: AsyncSession = Depends(get_db),
+) -> ActivityFeedRepository:
+    return ActivityFeedRepository(db)
 
 
 def get_project_type_repository(
@@ -50,6 +57,7 @@ def get_user_repository(
 
 def get_deal_service(
     repo: DealRepository = Depends(get_deal_repository),
+    feed_repo: ActivityFeedRepository = Depends(get_activity_feed_repository),
     company_repo: CompanyRepository = Depends(get_company_repository),
     lead_repo: LeadRepository = Depends(get_lead_repository),
     project_type_repo: ProjectTypeRepository = Depends(
@@ -69,6 +77,7 @@ def get_deal_service(
 
     return DealService(
         repo=repo,
+        feed_repo=feed_repo,
         uow=uow,
         company_repo=company_repo,
         lead_repo=lead_repo,

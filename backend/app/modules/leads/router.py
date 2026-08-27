@@ -1,10 +1,9 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.modules.leads.dependencies import get_lead_service
 from app.modules.leads.schema import (
-    LeadCreate,
-    LeadUpdate,
     LeadResponse,
+    LeadListResponse,
     LeadStatusResponse,
 )
 from app.modules.leads.service import LeadService
@@ -15,7 +14,6 @@ router = APIRouter(
     prefix="/leads",
     tags=["Leads"],
 )
-
 
 @router.get(
     "/statuses",
@@ -32,15 +30,28 @@ async def get_lead_statuses(
 
 @router.get(
     "",
-    response_model=list[LeadResponse],
+    response_model=LeadListResponse,
     dependencies=[
         Depends(require_permission("leads.view"))
     ],
 )
 async def get_leads(
+    company_id: int | None = Query(default=None),
+    status_id: int | None = Query(default=None),
+    lead_type: str | None = Query(default=None, min_length=1),
+    search: str | None = Query(default=None, min_length=1),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=100),
     service: LeadService = Depends(get_lead_service),
 ):
-    return await service.get_leads()
+    return await service.get_leads(
+        company_id=company_id,
+        status_id=status_id,
+        lead_type=lead_type,
+        search=search,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get(
@@ -55,39 +66,6 @@ async def get_lead(
     service: LeadService = Depends(get_lead_service),
 ):
     return await service.get_lead(lead_id)
-
-
-@router.post(
-    "",
-    response_model=LeadResponse,
-    status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("leads.create"))
-    ],
-)
-async def create_lead(
-    data: LeadCreate,
-    service: LeadService = Depends(get_lead_service),
-):
-    return await service.create_lead(data)
-
-
-@router.patch(
-    "/{lead_id}",
-    response_model=LeadResponse,
-    dependencies=[
-        Depends(require_permission("leads.update"))
-    ],
-)
-async def update_lead(
-    lead_id: int,
-    data: LeadUpdate,
-    service: LeadService = Depends(get_lead_service),
-):
-    return await service.update_lead(
-        lead_id=lead_id,
-        data=data,
-    )
 
 
 @router.delete(
