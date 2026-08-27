@@ -58,9 +58,13 @@ function InvoiceCreate({
     const [loadingDeals, setLoadingDeals] = useState(true)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [dealSearch, setDealSearch] = useState('')
+    const [showDealResults, setShowDealResults] = useState(false)
+    const [wonStatusId, setWonStatusId] = useState<number | null>(null)
+    const [searchingDeals, setSearchingDeals] = useState(false)
 
     useEffect(() => {
-        const loadWonDeals = async () => {
+        const loadWonStatus = async () => {
             try {
                 setLoadingDeals(true)
                 setError('')
@@ -77,45 +81,62 @@ function InvoiceCreate({
                     return
                 }
 
-                const response = await getDeals({
-                    deal_status_id: wonStatus.id,
-                    page: 1,
-                    page_size: 100,
-                })
-
-                setDeals(response.items)
+                setWonStatusId(wonStatus.id)
             } catch (error: any) {
                 setError(
                     error.response?.data?.detail ||
-                    'Unable to load won deals.'
+                    'Unable to load deal statuses.'
                 )
             } finally {
                 setLoadingDeals(false)
             }
         }
 
-        loadWonDeals()
+        loadWonStatus()
     }, [])
 
-    const handleDealChange = (
-        value: string
-    ) => {
-        setDealId(value)
-
-        const deal = deals.find(
-            (item) => item.id === Number(value)
-        )
-
-        if (!deal) {
+    useEffect(() => {
+        if (wonStatusId === null) {
             return
         }
+
+        const searchWonDeals = async () => {
+            try {
+                setSearchingDeals(true)
+
+                const response = await getDeals({
+                    deal_status_id: wonStatusId,
+                    search: dealSearch.trim() || undefined,
+                    page: 1,
+                    page_size: 10,
+                })
+
+                setDeals(response.items)
+            } catch (error: any) {
+                setError(
+                    error.response?.data?.detail ||
+                    'Unable to search won deals.'
+                )
+            } finally {
+                setSearchingDeals(false)
+            }
+        }
+
+        const timer = window.setTimeout(() => {
+            searchWonDeals()
+        }, 300)
+
+        return () => window.clearTimeout(timer)
+    }, [dealSearch, wonStatusId])
+
+    const handleDealChange = (deal: Deal) => {
+        setDealId(String(deal.id))
+        setDealSearch(`${deal.title} — ${deal.client_name}`)
+        setShowDealResults(false)
 
         setCustomerName(deal.client_name || '')
         setCustomerEmail(deal.client_email || '')
         setCustomerPhone(deal.client_phone || '')
-
-        // The Deal model does not contain a customer company name.
-        // The company-specific details remain editable.
     }
 
     const updateItem = (
@@ -307,29 +328,68 @@ function InvoiceCreate({
                                 Deal *
                             </label>
 
-                            <select
-                                value={dealId}
-                                onChange={(event) =>
-                                    handleDealChange(event.target.value)
-                                }
-                                disabled={loading || loadingDeals}
-                                className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-red-500"
-                            >
-                                <option value="">
-                                    {loadingDeals
-                                        ? 'Loading deals...'
-                                        : 'Select deal'}
-                                </option>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={dealSearch}
+                                    onChange={(event) => {
+                                        setDealSearch(event.target.value)
+                                        setShowDealResults(true)
+                                        setDealId('')
+                                    }}
+                                    onFocus={() => setShowDealResults(true)}
+                                    disabled={loading || loadingDeals}
+                                    placeholder={
+                                        loadingDeals
+                                            ? 'Loading...'
+                                            : 'Search won deals...'
+                                    }
+                                    className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-red-500"
+                                />
 
-                                {deals.map((deal) => (
-                                    <option
-                                        key={deal.id}
-                                        value={deal.id}
-                                    >
-                                        {deal.title} — {deal.client_name}
-                                    </option>
-                                ))}
-                            </select>
+                                {showDealResults && dealSearch.trim() && (
+                                    <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+
+                                        {searchingDeals ? (
+                                            <div className="px-4 py-3 text-sm text-slate-500">
+                                                Searching...
+                                            </div>
+                                        ) : deals.length === 0 ? (
+                                            <div className="px-4 py-3 text-sm text-slate-500">
+                                                No won deals found.
+                                            </div>
+                                        ) : (
+                                            deals.map((deal) => (
+                                                <button
+                                                    key={deal.id}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        handleDealChange(deal)
+                                                    }
+                                                    className="block w-full border-b border-slate-100 px-4 py-3 text-left hover:bg-slate-50"
+                                                >
+                                                    <div className="text-sm font-medium text-slate-900">
+                                                        {deal.title}
+                                                    </div>
+
+                                                    <div className="mt-1 text-xs text-slate-500">
+                                                        {deal.client_name}
+
+                                                        {deal.client_email && (
+                                                            <> • {deal.client_email}</>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="mt-1 text-xs text-slate-400">
+                                                        Deal #{deal.id}
+                                                    </div>
+                                                </button>
+                                            ))
+                                        )}
+
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div>
