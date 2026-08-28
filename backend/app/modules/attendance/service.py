@@ -6,6 +6,7 @@ from app.common.exceptions import (
     AttendanceNotFoundError,
     AttendanceSessionActiveError,
     AttendanceSessionNotActiveError,
+    PermissionDeniedError,
 )
 
 from app.modules.attendance.model import Attendance
@@ -258,7 +259,23 @@ class AttendanceService:
         self,
         attendance_id: int,
         company_id: int,
+        requester_id: int | None = None,
+        can_view_others: bool = True,
     ):
+        if not can_view_others:
+            attendance = await self.repo.get_by_id(
+                attendance_id
+            )
+
+            if (
+                not attendance
+                or attendance.company_id != company_id
+            ):
+                raise AttendanceNotFoundError()
+
+            if attendance.user_id != requester_id:
+                raise PermissionDeniedError()
+
         return await self.repo.get_sessions(
             attendance_id,
             company_id=company_id,

@@ -73,6 +73,10 @@ class InvoiceItemUpdate(BaseModel):
     )
 
 
+class InvoiceItemMutation(InvoiceItemCreate):
+    id: int | None = Field(default=None, gt=0)
+
+
 class InvoiceItemResponse(BaseModel):
     id: int
     invoice_id: int
@@ -144,10 +148,9 @@ class InvoiceUpdate(BaseModel):
 
     notes: str | None = None
 
-    status: int | None = Field(
+    items: list[InvoiceItemMutation] | None = Field(
         default=None,
-        ge=1,
-        le=7,
+        min_length=1,
     )
 
 

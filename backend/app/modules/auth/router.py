@@ -4,8 +4,8 @@ from app.modules.auth.schema import (
     LoginRequest,
     TokenResponse,
     AccessTokenResponse,
-    RefreshTokenRequest
-    
+    RefreshTokenRequest,
+    MeResponse,
 )
 
 from app.modules.auth.dependencies import (
@@ -33,9 +33,22 @@ async def login(
         data.password
     )
 
-@router.get("/me")
+@router.get("/me", response_model=MeResponse)
 async def me(current_user: CurrentUser):
-    return current_user
+    permissions: list[str] = []
+
+    if current_user.role:
+        permissions = sorted(
+            {
+                rp.permission.name
+                for rp in current_user.role.role_permissions
+            }
+        )
+
+    data = MeResponse.model_validate(current_user)
+    data.permissions = permissions
+
+    return data
 
 @router.post("/refresh", response_model=AccessTokenResponse)
 

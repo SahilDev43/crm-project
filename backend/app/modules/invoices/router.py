@@ -156,7 +156,8 @@ async def add_invoice_payment(
 
     return await service.add_payment(
         invoice_id=invoice_id,
-        data=data
+        data=data,
+        company_id=current_user.company_id,
     )
 
 @router.get(
@@ -170,6 +171,7 @@ async def get_invoice_payments(
 ):
     return await service.get_payments(
         invoice_id=invoice_id,
+        company_id=current_user.company_id,
     )
 
 @router.get(
@@ -182,7 +184,8 @@ async def get_invoice_payment_summary(
     current_user=Depends(get_current_user)
 ):
     return await service.get_payment_summary(
-        invoice_id=invoice_id
+        invoice_id=invoice_id,
+        company_id=current_user.company_id,
     )
 
 @router.delete(

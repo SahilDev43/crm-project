@@ -21,13 +21,20 @@ router = APIRouter(
 )
 
 
+def _has_permission(user, name: str) -> bool:
+    if not user.role:
+        return False
+
+    return name in {
+        rp.permission.name
+        for rp in user.role.role_permissions
+    }
+
+
 @router.post(
     "/punch-in",
     response_model=AttendanceSessionResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(require_permission("attendance.punch"))
-    ],
 )
 async def punch_in(
     request: Request,
@@ -48,9 +55,6 @@ async def punch_in(
 @router.post(
     "/punch-out",
     response_model=AttendanceSessionResponse,
-    dependencies=[
-        Depends(require_permission("attendance.punch"))
-    ],
 )
 async def punch_out(
     request: Request,
@@ -70,9 +74,6 @@ async def punch_out(
 @router.get(
     "/my",
     response_model=list[AttendanceResponse],
-    dependencies=[
-        Depends(require_permission("attendance.view"))
-    ],
 )
 async def get_my_attendance(
     service: AttendanceService = Depends(
@@ -140,9 +141,6 @@ async def get_attendance(
 @router.get(
     "/{attendance_id}/sessions",
     response_model=list[AttendanceSessionResponse],
-    dependencies=[
-        Depends(require_permission("attendance.view"))
-    ],
 )
 async def get_attendance_sessions(
     attendance_id: int,
@@ -151,9 +149,15 @@ async def get_attendance_sessions(
     ),
     current_user=Depends(get_current_user),
 ):
+    # Any logged-in user can read the sessions of their own attendance
+    # record; reading anyone else's still needs the view permission.
     return await service.get_sessions(
         attendance_id=attendance_id,
         company_id=current_user.company_id,
+        requester_id=current_user.id,
+        can_view_others=_has_permission(
+            current_user, "attendance.view"
+        ),
     )
 
 @router.get(

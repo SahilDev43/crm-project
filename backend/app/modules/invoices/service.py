@@ -338,15 +338,21 @@ class InvoiceService:
     async def add_payment(
         self,
         invoice_id: int,
-        data: InvoicePaymentCreate
+        data: InvoicePaymentCreate,
+        company_id: int,
     ) -> InvoicePayment:
 
         invoice = await self.repo.get_by_id(
             invoice_id
         )
 
-        if not invoice:
+        if not invoice or invoice.company_id != company_id:
             raise InvoiceNotFoundError()
+
+        if invoice.status not in (2, 3):
+            raise InvalidInvoiceStatusTransitionError(
+                "Payments can only be added to issued invoices"
+            )
 
         total_paid = await self.repo.get_total_paid(
             invoice_id
@@ -398,13 +404,14 @@ class InvoiceService:
     async def get_payments(
         self,
         invoice_id: int,
+        company_id: int,
     ) -> list[InvoicePayment]:
 
         invoice = await self.repo.get_by_id(
             invoice_id
         )
 
-        if not invoice:
+        if not invoice or invoice.company_id != company_id:
             raise InvoiceNotFoundError()
 
         return await self.repo.get_payments(
@@ -413,12 +420,13 @@ class InvoiceService:
 
     async def get_payment_summary(
         self,
-        invoice_id: int
+        invoice_id: int,
+        company_id: int,
     ) -> InvoicePaymentSummary:
 
         invoice = await self.repo.get_by_id(invoice_id)
 
-        if not invoice:
+        if not invoice or invoice.company_id != company_id:
             raise InvoiceNotFoundError()
 
         total_paid = await self.repo.get_total_paid(invoice_id)
@@ -881,11 +889,51 @@ class InvoiceService:
             )
 
         update_data = data.model_dump(
-            exclude_unset=True
+            exclude_unset=True,
+            exclude={"items"},
         )
 
         for field, value in update_data.items():
             setattr(invoice, field, value)
+
+        if data.items is not None:
+            existing_items = {item.id: item for item in invoice.items}
+            submitted_ids = [item.id for item in data.items if item.id]
+
+            if len(submitted_ids) != len(set(submitted_ids)):
+                raise InvalidInvoiceStatusTransitionError(
+                    "Invoice items must not be duplicated"
+                )
+
+            if any(item_id not in existing_items for item_id in submitted_ids):
+                raise InvoiceNotFoundError("Invoice item not found")
+
+            same_state = self._validate_gst_states(
+                company_state_code=invoice.company_state_code,
+                customer_state_code=invoice.customer_state_code,
+            )
+
+            for item_id, item in existing_items.items():
+                if item_id not in submitted_ids:
+                    await self.repo.delete_item(item)
+                    invoice.items.remove(item)
+
+            for item_data in data.items:
+                if item_data.id:
+                    item = existing_items[item_data.id]
+                    replacement = self._build_invoice_item(item_data, same_state)
+                    for field in (
+                        "description", "quantity", "unit_price", "discount",
+                        "taxable_amount", "gst_rate", "cgst_rate", "cgst_amount",
+                        "sgst_rate", "sgst_amount", "igst_rate", "igst_amount", "total",
+                    ):
+                        setattr(item, field, getattr(replacement, field))
+                else:
+                    invoice.items.append(
+                        self._build_invoice_item(item_data, same_state)
+                    )
+
+            await self._recalculate_invoice_totals(invoice)
 
         async with self.uow:
             await self.repo.flush()
@@ -906,12 +954,6 @@ class InvoiceService:
 
         if not invoice or invoice.company_id != company_id:
             raise InvoiceNotFoundError()
-
-        # Only draft invoices can be deleted
-        if invoice.status != 1:
-            raise InvalidInvoiceStatusTransitionError(
-                "Only draft invoices can be deleted"
-            )
 
         # Don't delete invoices that have payments
         total_paid = await self.repo.get_total_paid(
