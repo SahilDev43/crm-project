@@ -1,4 +1,5 @@
 import apiClient from './client'
+import axios from 'axios'
 
 import type {
     Invoice,
@@ -11,6 +12,21 @@ import type {
     InvoicePaymentSummary,
     InvoiceListResponse,
 } from '../types/invoice'
+
+export const getInvoiceErrorMessage = (
+    error: unknown,
+    fallback: string,
+): string => {
+    if (axios.isAxiosError<{ detail?: unknown }>(error)) {
+        const detail = error.response?.data?.detail
+
+        if (typeof detail === 'string') {
+            return detail
+        }
+    }
+
+    return fallback
+}
 
 export const getInvoices = async(
     page = 1,

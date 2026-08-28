@@ -41,10 +41,10 @@ export interface Invoice {
     due_date: string | null
 
     company_name: string
-    company_address: string
-    company_state: string
-    company_state_code: string
-    company_gstin: string
+    company_address: string | null
+    company_state: string | null
+    company_state_code: string | null
+    company_gstin: string | null
 
     customer_name: string
     customer_company: string | null
@@ -103,7 +103,11 @@ export interface InvoiceUpdate {
     customer_state_code?: string | null
     customer_gstin?: string | null
     notes?: string | null
-    status?: number | null
+    items?: InvoiceItemMutation[]
+}
+
+export interface InvoiceItemMutation extends InvoiceItemCreate {
+    id?: number
 }
 
 export interface InvoicePaymentCreate {

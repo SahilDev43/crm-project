@@ -10,6 +10,7 @@ import {
     getInvoicePayments,
     getInvoicePaymentSummary,
     getInvoicePdf,
+    getInvoiceErrorMessage,
 } from '../../api/invoices'
 
 import type {
@@ -61,11 +62,8 @@ function InvoiceView({
                 setInvoice(invoiceData)
                 setPayments(paymentsData)
                 setPaymentSummary(summaryData)
-            } catch (error: any) {
-                setError(
-                    error.response?.data?.detail ||
-                    'Unable to load invoice.'
-                )
+            } catch (error: unknown) {
+                setError(getInvoiceErrorMessage(error, 'Unable to load invoice.'))
             } finally {
                 setLoading(false)
             }
@@ -97,7 +95,7 @@ function InvoiceView({
 
             link.remove()
             window.URL.revokeObjectURL(url)
-        } catch (error) {
+        } catch {
             setError(
                 'Unable to download invoice PDF.'
             )
@@ -525,14 +523,18 @@ function InvoiceView({
                                 Payment History
                             </h3>
 
-                            <button
-                                type="button"
-                                onClick={() => setShowPaymentForm(true)}
-                                className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                            >
-                                <Plus size={15} />
-                                Add Payment
-                            </button>
+                            {(invoice.status === 2 || invoice.status === 3) &&
+                                paymentSummary &&
+                                Number(paymentSummary.remaining_amount) > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPaymentForm(true)}
+                                        className="flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    >
+                                        <Plus size={15} />
+                                        Add Payment
+                                    </button>
+                                )}
 
                         </div>
 

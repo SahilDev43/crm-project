@@ -94,22 +94,6 @@ function Deals() {
         setDeals(data.items)
         setTotal(data.total)
         setTotalPages(data.total_pages)
-
-        const assigneeIds = [...new Set(
-          data.items
-            .map((deal) => deal.assigned_to)
-            .filter((id): id is number => id !== null && id !== undefined)
-        )]
-        const userResults = await Promise.allSettled(
-          assigneeIds.map((id) => getUser(id))
-        )
-        const loadedUsers = userResults
-          .filter((result): result is PromiseFulfilledResult<User> => result.status === 'fulfilled')
-          .map((result) => result.value)
-        setUsers((currentUsers) => [
-          ...currentUsers.filter((user) => !assigneeIds.includes(user.id)),
-          ...loadedUsers,
-        ])
       } catch (error: any) {
         setError(error.response?.data?.detail || 'Unable to load deals.')
       } finally {
@@ -119,6 +103,49 @@ function Deals() {
 
     loadDeals()
   }, [companyId, debouncedSearch, page, reloadKey])
+
+  // Assignee names normally come from the 100-row user lookup loaded above.
+  // Fetch only the ids that aren't there yet, off the critical path, so the
+  // table renders immediately instead of waiting on a fan-out of requests.
+  useEffect(() => {
+    const missing = [...new Set(
+      deals
+        .map((deal) => deal.assigned_to)
+        .filter((id): id is number => id !== null && id !== undefined)
+    )].filter((id) => !users.some((user) => user.id === id))
+
+    if (missing.length === 0) {
+      return
+    }
+
+    let cancelled = false
+
+    Promise.allSettled(missing.map((id) => getUser(id))).then((results) => {
+      if (cancelled) {
+        return
+      }
+
+      const fetched = results
+        .filter(
+          (result): result is PromiseFulfilledResult<User> =>
+            result.status === 'fulfilled'
+        )
+        .map((result) => result.value)
+
+      if (fetched.length > 0) {
+        setUsers((current) => [
+          ...current,
+          ...fetched.filter(
+            (user) => !current.some((existing) => existing.id === user.id)
+          ),
+        ])
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [deals, users])
 
   const companyName = (id: number) =>
     companies.find((company) => company.id === id)?.name ?? `Company #${id}`

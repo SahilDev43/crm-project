@@ -34,6 +34,7 @@ const navigation = [
         name: 'Attendance',
         path: '/attendance',
         icon: CalendarCheck,
+        permission: 'attendance.manage',
     },
     {
         name: 'Payroll',
@@ -64,8 +65,14 @@ const navigation = [
 ]
 
 function Sidebar() {
-    const { logout } = useAuth()
+    const { logout, hasPermission } = useAuth()
     const [isPermissionsOpen, setIsPermissionsOpen] = useState(false)
+
+    const visibleNavigation = navigation.filter((item) => {
+        const permission = (item as { permission?: string }).permission
+
+        return !permission || hasPermission(permission)
+    })
 
     return (
         <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -77,7 +84,7 @@ function Sidebar() {
             </div>
 
             <nav className="flex-1 space-y-1 p-4">
-                {navigation.map((item) => {
+                {visibleNavigation.map((item) => {
                     const Icon = item.icon
 
                     if (item.children) {

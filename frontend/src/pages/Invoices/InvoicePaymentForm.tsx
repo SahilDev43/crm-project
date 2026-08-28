@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { X } from 'lucide-react'
 
-import { addInvoicePayment } from '../../api/invoices'
+import { addInvoicePayment, getInvoiceErrorMessage } from '../../api/invoices'
 
 interface InvoicePaymentFormProps {
     invoiceId: number
@@ -62,11 +62,8 @@ function InvoicePaymentForm({
             })
 
             await onSuccess()
-        } catch (error: any) {
-            setError(
-                error.response?.data?.detail ||
-                'Unable to add payment.'
-            )
+        } catch (error: unknown) {
+            setError(getInvoiceErrorMessage(error, 'Unable to add payment.'))
         } finally {
             setLoading(false)
         }

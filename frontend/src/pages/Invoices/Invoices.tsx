@@ -13,13 +13,15 @@ import {
     getInvoices,
     getInvoicePdf,
     issueInvoice,
-    cancelInvoice,
-    deleteInvoice,
+    getInvoiceErrorMessage,
 } from '../../api/invoices'
 
 import type { Invoice } from '../../types/invoice'
 import InvoiceView from './InvoiceView'
 import InvoiceCreate from './InvoiceCreate'
+import InvoiceEdit from './InvoiceEdit'
+import InvoiceDelete from './InvoiceDelete'
+import InvoiceCancel from './InvoiceCancel'
 
 function Invoices() {
     const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -30,6 +32,9 @@ function Invoices() {
     const [totalPages, setTotalPages] = useState(1)
     const [ViewInvoiceId, setViewInvoiceId] = useState<number | null>(null)
     const [showCreate, setShowCreate] = useState(false)
+    const [editInvoiceId, setEditInvoiceId] = useState<number | null>(null)
+    const [deleteInvoiceData, setDeleteInvoiceData] = useState<Invoice | null>(null)
+    const [cancelInvoiceData, setCancelInvoiceData] = useState<Invoice | null>(null)
 
     const loadInvoices = async () => {
         try {
@@ -40,18 +45,18 @@ function Invoices() {
 
             setInvoices(response.items)
             setTotalPages(response.total_pages)
-        } catch (error: any) {
-            setError(
-                error.response?.data?.detail ||
-                'Unable to load invoices.'
-            )
+        } catch (error: unknown) {
+            setError(getInvoiceErrorMessage(error, 'Unable to load invoices.'))
         } finally {
             setLoading(false)
         }
     }
 
     useEffect(() => {
-        loadInvoices()
+        // Loading a new server page is the purpose of this effect.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void loadInvoices()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page])
 
     const handleDownloadPdf = async (
@@ -86,43 +91,26 @@ function Invoices() {
         try {
             await issueInvoice(invoiceId)
             await loadInvoices()
-        } catch (error: any) {
-            setError(
-                error.response?.data?.detail ||
-                'Unable to issue invoice.'
-            )
+        } catch (error: unknown) {
+            setError(getInvoiceErrorMessage(error, 'Unable to issue invoice.'))
         }
     }
 
-    const handleCancel = async (invoiceId: number) => {
-        if (!window.confirm('Are you sure you want to cancel this invoice?')) {
-            return
-        }
-
+    const handleCancel = async () => {
         try {
-            await cancelInvoice(invoiceId)
+            setCancelInvoiceData(null)
             await loadInvoices()
-        } catch (error: any) {
-            setError(
-                error.response?.data?.detail ||
-                'Unable to cancel invoice.'
-            )
+        } catch (error: unknown) {
+            setError(getInvoiceErrorMessage(error, 'Unable to cancel invoice.'))
         }
     }
 
-    const handleDelete = async (invoiceId: number) => {
-        if (!window.confirm('Are you sure you want to delete this invoice?')) {
-            return
-        }
-
+    const handleDelete = async () => {
         try {
-            await deleteInvoice(invoiceId)
+            setDeleteInvoiceData(null)
             await loadInvoices()
-        } catch (error: any) {
-            setError(
-                error.response?.data?.detail ||
-                'Unable to delete invoice.'
-            )
+        } catch (error: unknown) {
+            setError(getInvoiceErrorMessage(error, 'Unable to refresh invoices.'))
         }
     }
 
@@ -335,22 +323,23 @@ function Invoices() {
                                                         <button
                                                             type="button"
                                                             title="Cancel"
-                                                            onClick={() =>
-                                                                handleCancel(invoice.id)
-                                                            }
+                                                            onClick={() => setCancelInvoiceData(invoice)}
                                                             className="rounded-lg p-2 text-slate-500 hover:bg-orange-50 hover:text-orange-600"
                                                         >
                                                             <XCircle size={16} />
                                                         </button>
                                                     )}
 
-                                                <button
-                                                    type="button"
-                                                    title="Edit"
-                                                    className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-                                                >
-                                                    <Pencil size={16} />
-                                                </button>
+                                                {invoice.status === 1 && (
+                                                    <button
+                                                        type="button"
+                                                        title="Edit"
+                                                        onClick={() => setEditInvoiceId(invoice.id)}
+                                                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                                                    >
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                )}
 
                                                 <button
                                                     type="button"
@@ -369,9 +358,7 @@ function Invoices() {
                                                 <button
                                                     type="button"
                                                     title="Delete"
-                                                    onClick={() =>
-                                                        handleDelete(invoice.id)
-                                                    }
+                                                    onClick={() => setDeleteInvoiceData(invoice)}
                                                     className="rounded-lg p-2 text-red-500 hover:bg-red-50"
                                                 >
                                                     <Trash2 size={16} />
@@ -439,6 +426,47 @@ function Invoices() {
                         setShowCreate(false)
                         await loadInvoices()
                     }}
+                />
+            )}
+
+            {editInvoiceId !== null && (
+                (() => {
+                    const invoice = invoices.find(
+                        (item) => item.id === editInvoiceId
+                    )
+
+                    if (!invoice) {
+                        return null
+                    }
+
+                    return (
+                        <InvoiceEdit
+                            invoice={invoice}
+                            onClose={() => setEditInvoiceId(null)}
+                            onSuccess={async () => {
+                                setEditInvoiceId(null)
+                                await loadInvoices()
+                            }}
+                        />
+                    )
+                })()
+            )}
+
+            {deleteInvoiceData && (
+                <InvoiceDelete
+                    invoiceId={deleteInvoiceData.id}
+                    invoiceNumber={deleteInvoiceData.invoice_number}
+                    onClose={() => setDeleteInvoiceData(null)}
+                    onSuccess={handleDelete}
+                />
+            )}
+
+            {cancelInvoiceData && (
+                <InvoiceCancel
+                    invoiceId={cancelInvoiceData.id}
+                    invoiceNumber={cancelInvoiceData.invoice_number}
+                    onClose={() => setCancelInvoiceData(null)}
+                    onSuccess={handleCancel}
                 />
             )}
 

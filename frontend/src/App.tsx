@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import {
   BrowserRouter,
   Routes,
@@ -9,6 +10,7 @@ import { useAuth } from './auth/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import DashboardLayout from './components/layout/DashboardLayout'
+import Dashboard from './pages/Dashboard/Dashboard'
 import Companies from './pages/Companies/Companies'
 import User from './pages/Users/User'
 import Roles from './pages/Roles/Roles'
@@ -16,28 +18,21 @@ import Permissions from './pages/Permissions/Permissions'
 import Leads from './pages/Leads/Leads'
 import Deals from './pages/Deals/Deals'
 import Invoices from './pages/Invoices/Invoices'
+import Attendance from './pages/Attendance/Attendance'
 
-function Dashboard() {
-  const { user } = useAuth()
+function RequirePermission({
+  permission,
+  children,
+}: {
+  permission: string
+  children: ReactElement
+}) {
+  const { hasPermission } = useAuth()
 
-  return (
-    <div className="min-h-screen bg-slate-100 p-8">
-
-      <div className="flex items-center justify-between">
-
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">
-            CRM Dashboard
-          </h1>
-
-          <p className="mt-2 text-slate-600">
-            Welcome, {user?.first_name} {user?.last_name}
-          </p>
-        </div>
-
-      </div>
-
-    </div>
+  return hasPermission(permission) ? (
+    children
+  ) : (
+    <Navigate to="/dashboard" replace />
   )
 }
 
@@ -97,7 +92,11 @@ function App() {
 
             <Route
               path="/attendance"
-              element={<ComingSoon />}
+              element={
+                <RequirePermission permission="attendance.manage">
+                  <Attendance />
+                </RequirePermission>
+              }
             />
 
             <Route

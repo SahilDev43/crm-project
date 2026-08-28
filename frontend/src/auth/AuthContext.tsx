@@ -21,6 +21,7 @@ interface AuthContextType {
   user: User | null
   isLoading: boolean
   isAuthenticated: boolean
+  hasPermission: (permission: string) => boolean
   login: (data: LoginRequest) => Promise<void>
   logout: () => Promise<void>
 }
@@ -40,6 +41,9 @@ export function AuthProvider({
   const [isLoading, setIsLoading] = useState(true)
 
   const isAuthenticated = user !== null
+
+  const hasPermission = (permission: string): boolean =>
+    user?.permissions?.includes(permission) ?? false
 
   useEffect(() => {
     const loadCurrentUser = async () => {
@@ -104,6 +108,7 @@ export function AuthProvider({
         user,
         isLoading,
         isAuthenticated,
+        hasPermission,
         login,
         logout,
       }}
