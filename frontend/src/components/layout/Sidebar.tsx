@@ -1,10 +1,41 @@
-import { LayoutDashboard, Building2, Handshake, FileText, CalendarCheck, WalletCards, LogOut, User, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
-import { useState } from "react"
+import {
+    LayoutDashboard,
+    Building2,
+    Handshake,
+    FileText,
+    CalendarCheck,
+    WalletCards,
+    Coins,
+    Layers,
+    Users,
+    LogOut,
+    User,
+    ShieldCheck,
+    KeyRound,
+    ChevronDown,
+    type LucideIcon,
+} from 'lucide-react'
+import { useState } from 'react'
 
-import { NavLink } from "react-router-dom"
-import { useAuth } from "../../auth/AuthContext"
+import { NavLink } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
 
-const navigation = [
+interface NavChild {
+    name: string
+    path: string
+    icon: LucideIcon
+    permission?: string
+}
+
+interface NavItem {
+    name: string
+    icon: LucideIcon
+    path?: string
+    permission?: string
+    children?: NavChild[]
+}
+
+const navigation: NavItem[] = [
     {
         name: 'Dashboard',
         path: '/dashboard',
@@ -37,9 +68,33 @@ const navigation = [
         permission: 'attendance.manage',
     },
     {
-        name: 'Payroll',
-        path: '/payroll',
+        name: 'Manage Payroll',
         icon: WalletCards,
+        children: [
+            {
+                name: 'Payroll',
+                path: '/payroll',
+                icon: WalletCards,
+            },
+            {
+                name: 'Salary Components',
+                path: '/salary-components',
+                icon: Coins,
+                permission: 'salary_components.view',
+            },
+            {
+                name: 'Salary Structures',
+                path: '/salary-structures',
+                icon: Layers,
+                permission: 'salary_structures.view',
+            },
+            {
+                name: 'Employee Salaries',
+                path: '/employee-salaries',
+                icon: Users,
+                permission: 'employee_salaries.view',
+            },
+        ],
     },
     {
         name: 'Users',
@@ -66,13 +121,37 @@ const navigation = [
 
 function Sidebar() {
     const { logout, hasPermission } = useAuth()
-    const [isPermissionsOpen, setIsPermissionsOpen] = useState(false)
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
 
-    const visibleNavigation = navigation.filter((item) => {
-        const permission = (item as { permission?: string }).permission
+    const toggleGroup = (name: string) =>
+        setOpenGroups((current) => ({
+            ...current,
+            [name]: !current[name],
+        }))
 
-        return !permission || hasPermission(permission)
-    })
+    const isVisible = (permission?: string) =>
+        !permission || hasPermission(permission)
+
+    const visibleNavigation = navigation
+        .map((item) => {
+            if (!item.children) {
+                return item
+            }
+
+            return {
+                ...item,
+                children: item.children.filter((child) =>
+                    isVisible(child.permission),
+                ),
+            }
+        })
+        .filter((item) => {
+            if (item.children) {
+                return item.children.length > 0
+            }
+
+            return isVisible(item.permission)
+        })
 
     return (
         <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white">
@@ -83,17 +162,19 @@ function Sidebar() {
                 </h1>
             </div>
 
-            <nav className="flex-1 space-y-1 p-4">
+            <nav className="flex-1 space-y-1 overflow-y-auto p-4">
                 {visibleNavigation.map((item) => {
                     const Icon = item.icon
 
                     if (item.children) {
+                        const isOpen = openGroups[item.name] ?? false
+
                         return (
                             <div key={item.name}>
                                 <button
                                     type="button"
-                                    onClick={() => setIsPermissionsOpen((isOpen) => !isOpen)}
-                                    aria-expanded={isPermissionsOpen}
+                                    onClick={() => toggleGroup(item.name)}
+                                    aria-expanded={isOpen}
                                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                 >
                                     <Icon size={18} />
@@ -104,11 +185,11 @@ function Sidebar() {
 
                                     <ChevronDown
                                         size={16}
-                                        className={`transition-transform ${isPermissionsOpen ? 'rotate-180' : ''}`}
+                                        className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
                                     />
                                 </button>
 
-                                {isPermissionsOpen && (
+                                {isOpen && (
                                     <div className="ml-4 space-y-1 border-l border-slate-200 pl-3">
                                         {item.children.map((child) => {
                                             const ChildIcon = child.icon
@@ -141,7 +222,7 @@ function Sidebar() {
                     return (
                         <NavLink
                             key={item.path}
-                            to={item.path}
+                            to={item.path ?? '#'}
                             className={({ isActive }) =>
                                 `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${isActive
                                     ? 'bg-red-50 text-red-600'

@@ -167,7 +167,7 @@ function AttendanceWidget({
                                 </p>
                             ) : (
                                 <p
-                                    className={`mt-1 font-mono text-5xl font-bold tabular-nums tracking-tight ${
+                                    className={`mt-1 font-mono text-4xl font-bold tabular-nums tracking-tight sm:text-5xl ${
                                         isWorking
                                             ? 'text-emerald-600'
                                             : 'text-slate-900'

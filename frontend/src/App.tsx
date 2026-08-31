@@ -19,6 +19,12 @@ import Leads from './pages/Leads/Leads'
 import Deals from './pages/Deals/Deals'
 import Invoices from './pages/Invoices/Invoices'
 import Attendance from './pages/Attendance/Attendance'
+import SalaryComponents from './pages/SalaryComponents/SalaryComponents'
+import SalaryStructures from './pages/SalaryStructures/SalaryStructures'
+import SalaryStructureDetail from './pages/SalaryStructures/SalaryStructureDetail'
+import EmployeeSalaries from './pages/EmployeeSalaries/EmployeeSalaries'
+import Payroll from './pages/Payroll/Payroll'
+import PayrollDetail from './pages/Payroll/PayrollDetail'
 
 function RequirePermission({
   permission,
@@ -33,20 +39,6 @@ function RequirePermission({
     children
   ) : (
     <Navigate to="/dashboard" replace />
-  )
-}
-
-function ComingSoon() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900">
-        Coming Soon
-      </h1>
-
-      <p className="mt-2 text-slate-600">
-        This module will be implemented next.
-      </p>
-    </div>
   )
 }
 
@@ -101,7 +93,48 @@ function App() {
 
             <Route
               path="/payroll"
-              element={<ComingSoon />}
+              element={<Payroll />}
+            />
+
+            <Route
+              path="/payroll/:payrollId"
+              element={<PayrollDetail />}
+            />
+
+            <Route
+              path="/salary-components"
+              element={
+                <RequirePermission permission="salary_components.view">
+                  <SalaryComponents />
+                </RequirePermission>
+              }
+            />
+
+            <Route
+              path="/salary-structures"
+              element={
+                <RequirePermission permission="salary_structures.view">
+                  <SalaryStructures />
+                </RequirePermission>
+              }
+            />
+
+            <Route
+              path="/salary-structures/:structureId"
+              element={
+                <RequirePermission permission="salary_structures.view">
+                  <SalaryStructureDetail />
+                </RequirePermission>
+              }
+            />
+
+            <Route
+              path="/employee-salaries"
+              element={
+                <RequirePermission permission="employee_salaries.view">
+                  <EmployeeSalaries />
+                </RequirePermission>
+              }
             />
 
             <Route
