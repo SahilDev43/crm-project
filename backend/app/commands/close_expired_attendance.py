@@ -1,15 +1,12 @@
 from datetime import datetime, time, timedelta
-from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
 
 import app.db.models
+from app.core.timezone import BUSINESS_TIMEZONE
 from app.db.session import AsyncSessionFactory
 from app.modules.attendance.model import Attendance
 from app.modules.attendance.session_model import AttendanceSession
-
-
-BUSINESS_TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
 async def close_expired_attendance():
@@ -106,8 +103,10 @@ async def close_expired_attendance():
         await db.commit()
 
         print(
-            f"Closed {len(sessions)} expired attendance sessions."
+            f"Closed {closed_count} expired attendance sessions."
         )
+
+        return closed_count
 
 if __name__ == "__main__":
     import asyncio

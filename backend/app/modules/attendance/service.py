@@ -9,6 +9,7 @@ from app.common.exceptions import (
     PermissionDeniedError,
 )
 
+from app.core.timezone import next_midnight_after
 from app.modules.attendance.model import Attendance
 from app.modules.attendance.session_model import AttendanceSession
 from app.modules.attendance.repository import AttendanceRepository
@@ -121,13 +122,20 @@ class AttendanceService:
 
         now = datetime.now(timezone.utc)
 
-        session.punch_out_at = now
+        # Safety cap: a session can never count past the midnight following its
+        # punch-in day.  Normally the auto punch-out job closes it there first,
+        # but if that job was down a stale open session must not persist a
+        # multi-day total when the user finally punches out.
+        cutoff = next_midnight_after(session.punch_in_at)
+        punch_out_at = min(now, cutoff)
+
+        session.punch_out_at = punch_out_at
         session.out_ip_address = ip_address
 
         # Calculate session duration
         total_seconds = int(
             (
-                now - session.punch_in_at
+                punch_out_at - session.punch_in_at
             ).total_seconds()
         )
 

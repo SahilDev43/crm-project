@@ -64,6 +64,82 @@ class PermissionSeeder(BaseSeeder):
         {
             "name": "permissions.delete",
             "description": "Delete permissions"
+        },
+
+        #Payroll
+        {
+            "name": "payroll.view",
+            "description": "View payrolls"
+        },
+        {
+            "name": "payroll.process",
+            "description": "Process payroll"
+        },
+        {
+            "name": "payroll.update",
+            "description": "Update payroll"
+        },
+        {
+            "name": "payroll.pay",
+            "description": "Mark payroll as paid"
+        },
+        {
+            "name": "payroll.delete",
+            "description": "Delete payroll"
+        },
+
+        #Salary Components
+        {
+            "name": "salary_components.view",
+            "description": "View salary components"
+        },
+        {
+            "name": "salary_components.create",
+            "description": "Create salary components"
+        },
+        {
+            "name": "salary_components.update",
+            "description": "Update salary components"
+        },
+        {
+            "name": "salary_components.delete",
+            "description": "Delete salary components"
+        },
+
+        #Salary Structures
+        {
+            "name": "salary_structures.view",
+            "description": "View salary structures"
+        },
+        {
+            "name": "salary_structures.create",
+            "description": "Create salary structures"
+        },
+        {
+            "name": "salary_structures.update",
+            "description": "Update salary structures"
+        },
+        {
+            "name": "salary_structures.delete",
+            "description": "Delete salary structures"
+        },
+
+        #Employee Salaries
+        {
+            "name": "employee_salaries.view",
+            "description": "View employee salaries"
+        },
+        {
+            "name": "employee_salaries.create",
+            "description": "Create employee salaries"
+        },
+        {
+            "name": "employee_salaries.update",
+            "description": "Update employee salaries"
+        },
+        {
+            "name": "employee_salaries.delete",
+            "description": "Delete employee salaries"
         }
     ]
 

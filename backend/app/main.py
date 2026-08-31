@@ -10,6 +10,7 @@ from app.api import api_router
 from app.common.exceptions import AppException
 from app.core.config import settings
 from app.core.logging import configure_logging
+from app.core.scheduler import shutdown_scheduler, start_scheduler
 from app.db.health import check_database
 
 
@@ -26,7 +27,12 @@ async def lifespan(app: FastAPI):
     else:
         print("❌ Database Connection Failed")
 
-    yield
+    start_scheduler()
+
+    try:
+        yield
+    finally:
+        shutdown_scheduler()
 
 
 # Create FastAPI application ONLY ONCE
