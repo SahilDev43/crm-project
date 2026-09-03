@@ -13,6 +13,7 @@ import {
     ShieldCheck,
     KeyRound,
     ChevronDown,
+    BarChart3,
     type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -60,6 +61,12 @@ const navigation: NavItem[] = [
         name: 'Invoices',
         path: '/invoices',
         icon: FileText,
+    },
+    {
+        name: 'Reports',
+        path: '/reports',
+        icon: BarChart3,
+        permission: 'reports.view',
     },
     {
         name: 'Attendance',

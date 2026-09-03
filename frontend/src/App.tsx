@@ -25,6 +25,7 @@ import SalaryStructureDetail from './pages/SalaryStructures/SalaryStructureDetai
 import EmployeeSalaries from './pages/EmployeeSalaries/EmployeeSalaries'
 import Payroll from './pages/Payroll/Payroll'
 import PayrollDetail from './pages/Payroll/PayrollDetail'
+import Reports from './pages/Reports/Reports'
 
 function RequirePermission({
   permission,
@@ -150,6 +151,15 @@ function App() {
             <Route
               path="/roles"
               element={<Roles />}
+            />
+
+            <Route
+              path="/reports"
+              element={
+                <RequirePermission permission="reports.view">
+                  <Reports />
+                </RequirePermission>
+              }
             />
 
           </Route>
