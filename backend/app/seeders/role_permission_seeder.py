@@ -17,6 +17,18 @@ class RolePermissionSeeder(BaseSeeder):
         "HR": [
             "attendance.manage",
             "users.view",
+            "reports.view",
+            "reports.attendance",
+        ],
+        "Manager": [
+            "reports.view",
+            "reports.sales",
+            "reports.performance",
+            "reports.export",
+        ],
+        "Sales": [
+            "reports.view",
+            "reports.export",
         ],
     }
 

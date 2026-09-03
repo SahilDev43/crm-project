@@ -140,6 +140,36 @@ class PermissionSeeder(BaseSeeder):
         {
             "name": "employee_salaries.delete",
             "description": "Delete employee salaries"
+        },
+
+        #Reports
+        {
+            "name": "reports.view",
+            "description": "Open the Reports & Analytics module"
+        },
+        {
+            "name": "reports.sales",
+            "description": "View company-wide sales/lead/deal reports"
+        },
+        {
+            "name": "reports.revenue",
+            "description": "View revenue and invoice financial reports"
+        },
+        {
+            "name": "reports.attendance",
+            "description": "View company-wide attendance reports"
+        },
+        {
+            "name": "reports.payroll",
+            "description": "View payroll reports"
+        },
+        {
+            "name": "reports.performance",
+            "description": "View cross-employee performance reports"
+        },
+        {
+            "name": "reports.export",
+            "description": "Export report data as CSV"
         }
     ]
 

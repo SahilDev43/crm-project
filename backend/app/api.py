@@ -25,6 +25,7 @@ from app.modules.employee_salaries.router import (
 )
 from app.modules.payroll.router import router as payroll_router
 from app.modules.invoices.router import router as invoices_router
+from app.modules.reports.router import router as reports_router
 
 api_router = APIRouter()
 
@@ -44,3 +45,4 @@ api_router.include_router(salary_structure_router)
 api_router.include_router(employee_salary_router)
 api_router.include_router(payroll_router)
 api_router.include_router(invoices_router)
+api_router.include_router(reports_router)

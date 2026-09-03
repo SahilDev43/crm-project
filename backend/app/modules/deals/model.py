@@ -135,6 +135,7 @@ class Deal(Base):
         Integer,
         nullable=False,
         default=1,
+        index=True,
     )
 
     type: Mapped[int] = mapped_column(
@@ -148,6 +149,7 @@ class Deal(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default="now()",
+        index=True,
     )
 
     updated_at: Mapped[datetime] = mapped_column(

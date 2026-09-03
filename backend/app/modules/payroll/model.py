@@ -5,6 +5,7 @@ from sqlalchemy import(
     Boolean,
     Date,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     Text
@@ -24,6 +25,12 @@ class Payroll(Base, TimestampMixin, SoftDeleteMixin):
             "payroll_month",
             "payroll_year",
             name="uq_payroll_user_period",
+        ),
+        Index(
+            "ix_payrolls_company_period",
+            "company_id",
+            "payroll_year",
+            "payroll_month",
         ),
     )
 

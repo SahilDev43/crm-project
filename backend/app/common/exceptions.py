@@ -379,3 +379,15 @@ class InvalidInvoiceStatusTransitionError(AppException):
 class InvoiceCannotBeCancelledError(AppException):
     status_code = status.HTTP_400_BAD_REQUEST
     detail = "Paid or cancelled invoices cannot be cancelled"
+
+
+class InvalidDateRangeError(AppException):
+    """Raised when date_from is after date_to in a report filter."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "date_from must be on or before date_to"
+
+
+class InvalidReportFilterError(AppException):
+    """Raised when a report query parameter has an unsupported value."""
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Invalid report filter"

@@ -48,6 +48,7 @@ class Invoice(Base, TimestampMixin, SoftDeleteMixin):
     invoice_date: Mapped[date] = mapped_column(
         Date,
         nullable=False,
+        index=True,
     )
 
     due_date: Mapped[date | None] = mapped_column(
@@ -177,6 +178,7 @@ class Invoice(Base, TimestampMixin, SoftDeleteMixin):
         Integer,
         nullable=False,
         default=1,
+        index=True,
     )
 
     notes: Mapped[str | None] = mapped_column(

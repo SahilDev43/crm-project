@@ -60,6 +60,7 @@ class Attendance(Base, TimestampMixin, SoftDeleteMixin):
         nullable=False,
         default=1,
         server_default="1",
+        index=True,
     )
 
     remarks: Mapped[str | None] = mapped_column(
